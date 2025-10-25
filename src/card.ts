@@ -1,9 +1,3 @@
-import { html, LitElement, css, CSSResultGroup, nothing, TemplateResult } from "lit";
-import { property, state } from "lit/decorators.js";
-import { unsafeSVG } from "lit/directives/unsafe-svg.js";
-import { HassEntity } from "home-assistant-js-websocket";
-import { HomeAssistant, LovelaceCardConfig } from "custom-card-helpers";
-import { HpsuDashboardCardEditor } from "./editor";
 import {
     svg_item_config,
     SVGItem,
@@ -11,6 +5,15 @@ import {
     text_map,
     validateConfig,
 } from "./svg_item_config";
+import { HpsuDashboardCardEditor } from "./editor";
+
+import type { LovelaceCardConfig } from "@ha/data/lovelace/config/card";
+import type { HomeAssistant } from "@ha/types";
+
+import { html, LitElement, css, CSSResultGroup, nothing, TemplateResult } from "lit";
+import { property, state } from "lit/decorators.js";
+import { unsafeSVG } from "lit/directives/unsafe-svg.js";
+import { HassEntity } from "home-assistant-js-websocket";
 
 declare global {
     interface HTMLElementTagNameMap {
@@ -394,11 +397,13 @@ export class HPSUDashboardCard extends LitElement {
         }
     }
 
-    isPanelView() {
-        let node = this;
+    private isPanelView(): boolean {
+        let node: Element | null | undefined = this;
         while (node) {
-            if (node.tagName?.toLowerCase() === "hui-panel-view") return true;
-            node = node.getRootNode()?.host;
+            if (node.tagName?.toLowerCase() === "hui-panel-view") {
+                return true;
+            }
+            node = (node.getRootNode() as ShadowRoot)?.host;
         }
         return false;
     }

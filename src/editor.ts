@@ -1,6 +1,3 @@
-import { html, LitElement, css } from "lit";
-import { property, state } from "lit/decorators.js";
-import { LovelaceCardConfig, HomeAssistant } from "custom-card-helpers";
 import {
     svg_item_config,
     SVGItem,
@@ -9,11 +6,22 @@ import {
     validateConfig,
 } from "./svg_item_config";
 
+import type { LovelaceCardConfig } from "@ha/data/lovelace/config/card";
+import type { HomeAssistant } from "@ha/types";
+
+import type { HassEntity } from "home-assistant-js-websocket";
+import { property, state } from "lit/decorators.js";
+import { html, LitElement, css } from "lit";
+
 declare global {
   interface Window {
     loadCardHelpers(): Promise<any>;
   }
 }
+
+const ensureArray = <T>(value: T | T[]): T[] => {
+  return Array.isArray(value) ? value : [value];
+};
 
 export class HpsuDashboardCardEditor extends LitElement {
     @property({ attribute: false }) public hass!: HomeAssistant;
@@ -23,6 +31,7 @@ export class HpsuDashboardCardEditor extends LitElement {
     @state() private svgItemConfig: SVGItem[] = [];
 
     async setConfig(config: LovelaceCardConfig) {
+
         // HACK: This call is necessary to load the ha-entity-picker components.
         const cardHelpers = await (window as any).loadCardHelpers();
         const entitiesCard = await cardHelpers.createCardElement({ type: "entities", entities: [] });
@@ -72,22 +81,50 @@ export class HpsuDashboardCardEditor extends LitElement {
 
         }
 
+        const deviceLabel = "HPSU Devices";
         return html`
             <div class="card-config">
+                <ha-expansion-panel
+                    .header=${deviceLabel}
+                >
+                    <ha-selector
+                        .hass=${this.hass}
+                        .selector=${{ device: {} }}
+                        .value=${this.config.canDevice}
+                        @value-changed=${this._entityChanged}
+                        id="can-device-selector"
+                        .placeholder=${"CAN Gerät auswählen"}
+                        can-device-id=${this.config.canDevice}>
+                    </ha-selector>
+                    <ha-selector
+                        .hass=${this.hass}
+                        .selector=${{ device: {} }}
+                        .value=${this.config.uartDevice}
+                        @value-changed=${this._entityChanged}
+                        id="uart-device-selector"
+                        .placeholder=${"UART Gerät auswählen"}
+                        can-device-id=${this.config.uartDevice}
+                        >
+                    </ha-selector>
+                </ha-expansion-panel>
                 ${Object.keys(categories).map(category => html`
                     <ha-expansion-panel
                         .header=${category}
                     >
                         ${categories[category].map(svg_item => html`
-                            <ha-entity-picker
-                                allow-custom-entity
-                                data-id=${svg_item.id}
-                                label=${svg_item.texts[this.language]?.desc || "<missing>"}
-                                .value=${svg_item.entityId}
+                            <ha-selector
                                 .hass=${this.hass}
-                                .includeDomains=${svg_item.type}
+                                .selector=${{
+                                    entity: {
+                                        include_entities: this.getRelevantEntityIds(svg_item)
+                                    }
+                                }}
+                                .placeholder=${svg_item.texts[this.language]?.desc || "<missing>"}
+                                .value=${svg_item.entityId}
                                 @value-changed=${this._entityChanged}
-                            ></ha-entity-picker>
+                                data-id=${svg_item.id}
+                            >
+                            </ha-selector>
                         `)}
                     </ha-expansion-panel>
                 `)}
@@ -95,19 +132,70 @@ export class HpsuDashboardCardEditor extends LitElement {
         `;
     }
 
+    private getRelevantEntityIds(svg_item: SVGItem): string[] {
+        const relevantEntityIds: string[] = [];
+
+        const targetDeviceId = svg_item.device === "UART" ? this.config.uartDevice : this.config.canDevice;
+        const targetUnit = ensureArray(svg_item.unit);
+
+        for (const entityId in this.hass.states) {
+            if (!Object.prototype.hasOwnProperty.call(this.hass.states, entityId)) {
+                continue;
+            }
+
+            const entity = this.hass.states[entityId];
+            const domain = entityId.substring(0, entityId.indexOf('.'));
+
+            if (svg_item.device && targetDeviceId) {
+                const entityRegistryEntry = this.hass.entities[entityId];
+
+                if (!entityRegistryEntry || entityRegistryEntry.device_id !== targetDeviceId) {
+                    continue;
+                }
+            }
+
+            if (svg_item.domain !== undefined && svg_item.domain !== domain) {
+                continue;
+            }
+
+            if (domain !== "select") {
+                const unitOfMeasurement = entity.attributes.unit_of_measurement;
+
+                if (!targetUnit.includes(unitOfMeasurement)) {
+                    continue;
+                }
+            }
+            relevantEntityIds.push(entityId);
+        }
+
+        return relevantEntityIds;
+    }
+
     private _entityChanged(event: CustomEvent): void {
         event.stopPropagation();
         const picker = event.target as HTMLElement;
+        const updatedEntities = { ...this.config.entities } as Record<string, string>;
+
+        let canDevice = this.config.canDevice;
+        if (picker.getAttribute("id") == "can-device-selector") {
+            canDevice = (event.detail as any).value;
+        }
+
+        let uartDevice = this.config.uartDevice;
+        if (picker.getAttribute("id") == "uart-device-selector") {
+            uartDevice = (event.detail as any).value;
+        }
+
         const entityId = picker.getAttribute("data-id");
-
-        if (!entityId) return;
-
-        const updatedEntities = { ...this.config.entities };
-        updatedEntities[entityId] = (event.detail as any).value;
+        if (entityId) {
+            updatedEntities[entityId] = (event.detail as any).value;
+        }
 
         this.config = {
             ...this.config,
-            entities: updatedEntities
+            canDevice: canDevice,
+            uartDevice: uartDevice,
+            entities: HpsuDashboardCardEditor.sortRecordBySvgOrder(updatedEntities, this.svgItemConfig)
         };
 
         this.dispatchEvent(
@@ -117,6 +205,14 @@ export class HpsuDashboardCardEditor extends LitElement {
                 composed: true,
             })
         );
+    }
+
+    private static sortRecordBySvgOrder(data: Record<string, string>, svgItems: SVGItem[]): Record<string, string> {
+        const dataKeys = Object.keys(data);
+        const sortedEntries: [string, string][] = svgItems
+            .filter(item => dataKeys.includes(item.id))
+            .map(item => [item.id, data[item.id]]);
+        return Object.fromEntries(sortedEntries) as Record<string, string>;
     }
 
     static get styles() {
@@ -131,8 +227,9 @@ export class HpsuDashboardCardEditor extends LitElement {
                 margin-bottom: 16px;
                 margin-top: 24px;
             }
-            ha-entity-picker {
-                margin-bottom: 16px;
+            ha-selector, ha-device-picker, ha-entity-picker {
+                margin: 5px;
+                display: block;
             }
         `;
     }

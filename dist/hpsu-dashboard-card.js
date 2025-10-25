@@ -538,6 +538,1115 @@ var $24c52f343453d62d$export$2e2bcd8739ae039 = {
 
 
 
+const $eb5cfe1dd9fe4e85$export$9b06e6104ce35b16 = [
+    {
+        id: "ta",
+        label_rect_id: "ta_label",
+        domain: "sensor",
+        device: "CAN",
+        unit: "\xb0C",
+        value_rect_id: "ta_val",
+        offset: 6,
+        category: {
+            de: "Oben",
+            en: "Top",
+            it: "In alto"
+        },
+        texts: {
+            de: {
+                label: "TA",
+                desc: "TA - Au\xdfentemperatur"
+            },
+            en: {
+                label: "TA",
+                desc: "TA - Outside Temperature"
+            },
+            it: {
+                label: "TA",
+                desc: "TA - Temperatura esterna"
+            }
+        }
+    },
+    {
+        id: "ta2",
+        label_rect_id: "ta2_label",
+        domain: "sensor",
+        device: "CAN",
+        unit: "\xb0C",
+        value_rect_id: "ta2_val",
+        offset: 6,
+        optional: true,
+        parent: "TA2",
+        texts: {
+            de: {
+                label: "TA2",
+                desc: "TA2 - Im Au\xdfenger\xe4t"
+            },
+            en: {
+                label: "TA2",
+                desc: "TA2 - In the outdoor unit"
+            },
+            it: {
+                label: "TA2",
+                desc: "TA2 - Nell'unit\xe0 esterna"
+            }
+        }
+    },
+    {
+        id: "expansion_valve",
+        label_rect_id: "eev_label",
+        domain: "sensor",
+        device: "UART",
+        unit: "pls",
+        value_rect_id: "eev_val",
+        offset: 6,
+        digits: 0,
+        texts: {
+            de: {
+                label: "EEV",
+                desc: "Elektonisches Expansionsventil"
+            },
+            en: {
+                label: "EEV",
+                desc: "Electronic Expansion Valve"
+            },
+            it: {
+                label: "EEV",
+                desc: "Valvola di espansione elettronica"
+            }
+        }
+    },
+    {
+        id: "pressure_equalization",
+        domain: "binary_sensor",
+        device: "UART",
+        texts: {
+            de: {
+                desc: "Druckausgleich"
+            },
+            en: {
+                desc: "Pressure equalization"
+            },
+            it: {
+                desc: "Equalizzazione della pressione"
+            }
+        }
+    },
+    {
+        id: "kondensat",
+        label_rect_id: "kondensat_label",
+        domain: "sensor",
+        device: "UART",
+        unit: "\xb0C",
+        value_rect_id: "kondensat_value",
+        offset: 6,
+        texts: {
+            de: {
+                label: "Kondensat",
+                desc: "Kondensat"
+            },
+            en: {
+                label: "Condensate",
+                desc: "Condensate"
+            },
+            it: {
+                label: "Condensato",
+                desc: "Condensato"
+            }
+        }
+    },
+    {
+        id: "umwaelzpumpe",
+        label_rect_id: "uwp_label",
+        domain: "sensor",
+        device: "CAN",
+        unit: "%",
+        value_rect_id: "uwp_value",
+        offset: 6,
+        digits: 0,
+        texts: {
+            de: {
+                label: "Umw\xe4lzpumpe",
+                desc: "Umw\xe4lzpumpe"
+            },
+            en: {
+                label: "Circulation pump",
+                desc: "Circulation pump"
+            },
+            it: {
+                label: "Pompa circ.",
+                desc: "Pompa di circolazione"
+            }
+        }
+    },
+    {
+        id: "umwaelzpumpe_an_aus",
+        domain: "binary_sensor",
+        device: "CAN",
+        value_rect_id: "circ_pump_rect",
+        offset: 2,
+        fontSize: "30px",
+        texts: {
+            de: {
+                desc: "Status Umw\xe4lzpumpe"
+            },
+            en: {
+                desc: "Circulation pump status"
+            },
+            it: {
+                desc: "Stato pompa di circolazione"
+            }
+        }
+    },
+    {
+        id: "durchfluss",
+        domain: "sensor",
+        device: "CAN",
+        unit: "L/h",
+        label_rect_id: "flow_rate_label",
+        value_rect_id: "flow_rate_value",
+        offset: 6,
+        digits: 0,
+        texts: {
+            de: {
+                label: "Durchfluss",
+                desc: "Durchfluss"
+            },
+            en: {
+                label: "Flow rate",
+                desc: "Flow rate"
+            },
+            it: {
+                label: "Portata",
+                desc: "Portata"
+            }
+        }
+    },
+    {
+        id: "ruecklauf_1",
+        domain: "sensor",
+        device: "CAN",
+        unit: "\xb0C",
+        label_rect_id: "return_flow_label",
+        value_rect_id: "return_flow_can_value",
+        offset: 6,
+        texts: {
+            de: {
+                label: "R\xfccklauf",
+                desc: "R\xfccklauf - CAN"
+            },
+            en: {
+                label: "Return flow",
+                desc: "Return flow - CAN"
+            },
+            it: {
+                label: "Ritorno",
+                desc: "Ritorno - CAN"
+            }
+        }
+    },
+    {
+        id: "ruecklauf_2",
+        domain: "sensor",
+        device: "UART",
+        unit: "\xb0C",
+        value_rect_id: "return_flow_uart_value",
+        offset: 6,
+        texts: {
+            de: {
+                desc: "R\xfccklauf - UART"
+            },
+            en: {
+                desc: "Return flow - UART"
+            },
+            it: {
+                desc: "Ritorno - UART"
+            }
+        }
+    },
+    {
+        id: "verdampfer",
+        domain: "sensor",
+        device: "UART",
+        unit: "\xb0C",
+        label_rect_id: "evaporator_label",
+        value_rect_id: "evaporator_value",
+        offset: 6,
+        category: {
+            de: "Mitte",
+            en: "Middle",
+            it: "Centro"
+        },
+        texts: {
+            de: {
+                label: "Verdampfer",
+                desc: "Verdampfer"
+            },
+            en: {
+                label: "Evaporator",
+                desc: "Evaporator"
+            },
+            it: {
+                label: "Evaporatore",
+                desc: "Evaporatore"
+            }
+        }
+    },
+    {
+        id: "hot_gas",
+        domain: "sensor",
+        device: "UART",
+        unit: "\xb0C",
+        label_rect_id: "hot_gas_label",
+        value_rect_id: "hot_gas_value",
+        offset: 6,
+        texts: {
+            de: {
+                label: "Hei\xdfgas",
+                desc: "Hei\xdfgas"
+            },
+            en: {
+                label: "Hot gas",
+                desc: "Hot gas"
+            },
+            it: {
+                label: "Gas caldo",
+                desc: "Gas caldo"
+            }
+        }
+    },
+    {
+        id: "hot_gas_condenser",
+        domain: "sensor",
+        unit: "\xb0C",
+        label_rect_id: "hot_gas_condenser_label",
+        value_rect_id: "hot_gas_condenser_value",
+        offset: 6,
+        optional: true,
+        parent: "hot_gas_condenser",
+        texts: {
+            de: {
+                label: "Hei\xdfgas",
+                desc: "Hei\xdfgas am Kondensator"
+            },
+            en: {
+                label: "Hot gas",
+                desc: "Hot gas at the condenser"
+            },
+            it: {
+                label: "Gas caldo",
+                desc: "Gas caldo al condensatore"
+            }
+        }
+    },
+    {
+        id: "spread",
+        domain: "sensor",
+        device: "CAN",
+        unit: "\xb0C",
+        label_rect_id: "spread_label",
+        value_rect_id: "spread_value",
+        offset: 6,
+        texts: {
+            de: {
+                label: "Spreizung",
+                desc: "Spreizung"
+            },
+            en: {
+                label: "Spread",
+                desc: "Temperature spread"
+            },
+            it: {
+                label: "\u0394T",
+                desc: "Differenza di temperatura"
+            }
+        }
+    },
+    {
+        id: "vorlauf_1",
+        domain: "sensor",
+        device: "CAN",
+        unit: "\xb0C",
+        label_rect_id: "flow_label",
+        value_rect_id: "flow_can_value",
+        offset: 6,
+        texts: {
+            de: {
+                label: "Vorlauf",
+                desc: "Vorlauf - CAN"
+            },
+            en: {
+                label: "Flow",
+                desc: "Flow - CAN"
+            },
+            it: {
+                label: "Mandata",
+                desc: "Mandata - CAN"
+            }
+        }
+    },
+    {
+        id: "vorlauf_2",
+        domain: "sensor",
+        device: "UART",
+        unit: "\xb0C",
+        value_rect_id: "flow_uart_value",
+        offset: 6,
+        texts: {
+            de: {
+                desc: "Vorlauf - UART"
+            },
+            en: {
+                desc: "Flow - UART"
+            },
+            it: {
+                desc: "Mandata - UART"
+            }
+        }
+    },
+    {
+        id: "vorlauf_soll",
+        domain: "sensor",
+        device: "CAN",
+        unit: "\xb0C",
+        label_rect_id: "flow_setpoint_label",
+        value_rect_id: "flow_setpoint_value",
+        offset: 6,
+        texts: {
+            de: {
+                label: "Vorlauf-Soll",
+                desc: "Vorlauf Soll"
+            },
+            en: {
+                label: "Setpoint",
+                desc: "Flow setpoint"
+            },
+            it: {
+                label: "Impostata",
+                desc: "Temperatura di mandata impostata"
+            }
+        }
+    },
+    {
+        id: "wasserdruck",
+        domain: "sensor",
+        device: "CAN",
+        unit: "bar",
+        label_rect_id: "pressure_label",
+        value_rect_id: "pressure_value",
+        offset: 6,
+        texts: {
+            de: {
+                label: "Druck",
+                desc: "Wasserdruck"
+            },
+            en: {
+                label: "Pressure",
+                desc: "Water Pressure"
+            },
+            it: {
+                label: "Pressione",
+                desc: "Pressione dell'acqua"
+            }
+        }
+    },
+    {
+        id: "vorlauf_bh_1",
+        domain: "sensor",
+        device: "CAN",
+        unit: "\xb0C",
+        label_rect_id: "flow_bh_label",
+        value_rect_id: "flow_bh_can_value",
+        offset: 6,
+        texts: {
+            de: {
+                label: "Vorlauf BH",
+                desc: "VorlaufBH - CAN"
+            },
+            en: {
+                label: "Flow BH",
+                desc: "Flow BH - CAN"
+            },
+            it: {
+                label: "Mandata BH",
+                desc: "Mandata al riscaldatore di backup - CAN"
+            }
+        }
+    },
+    {
+        id: "vorlauf_bh_2",
+        domain: "sensor",
+        device: "UART",
+        unit: "\xb0C",
+        value_rect_id: "flow_bh_uart_value",
+        offset: 6,
+        texts: {
+            de: {
+                desc: "VorlaufBH - UART"
+            },
+            en: {
+                desc: "Flow BH - UART"
+            },
+            it: {
+                desc: "Flow BH - UART"
+            }
+        }
+    },
+    {
+        id: "kompressor_an_aus",
+        domain: "binary_sensor",
+        device: "CAN",
+        value_rect_id: "comp_rect",
+        offset: 2,
+        fontSize: "40px",
+        texts: {
+            de: {
+                desc: "Status Kompressor"
+            },
+            en: {
+                desc: "Compressor status"
+            },
+            it: {
+                desc: "Stato del compressore"
+            }
+        }
+    },
+    {
+        id: "luefter",
+        domain: "sensor",
+        device: "UART",
+        unit: "RPM",
+        label_rect_id: "fan_label",
+        value_rect_id: "fan_value",
+        offset: 6,
+        category: {
+            de: "Unten",
+            en: "Bottom",
+            it: "In basso"
+        },
+        digits: 0,
+        texts: {
+            de: {
+                label: "L\xfcfter",
+                desc: "L\xfcfter Drehzahl"
+            },
+            en: {
+                label: "Fan",
+                desc: "Fan speed"
+            },
+            it: {
+                label: "Ventilatore",
+                desc: "Velocit\xe0 del ventilatore"
+            }
+        }
+    },
+    {
+        id: "verdichter",
+        domain: "sensor",
+        device: "UART",
+        unit: "RPM",
+        label_rect_id: "compressor_label",
+        value_rect_id: "compressor_value",
+        offset: 6,
+        digits: 0,
+        texts: {
+            de: {
+                label: "Verdichter",
+                desc: "Verdichter Drehzahl"
+            },
+            en: {
+                label: "Compressor",
+                desc: "Compressor speed"
+            },
+            it: {
+                label: "Compressore",
+                desc: "Velocit\xe0 del compressore"
+            }
+        }
+    },
+    {
+        id: "speicher",
+        domain: "sensor",
+        device: "CAN",
+        unit: "\xb0C",
+        label_rect_id: "storage_label",
+        value_rect_id: "storage_value",
+        offset: 6,
+        texts: {
+            de: {
+                label: "Speicher",
+                desc: "Speicher Ist"
+            },
+            en: {
+                label: "Storage",
+                desc: "Current storage value"
+            },
+            it: {
+                label: "Serbatoio",
+                desc: "Temperatura serbatoio attuale"
+            }
+        }
+    },
+    {
+        id: "speicher_soll",
+        domain: "select",
+        device: "CAN",
+        unit: "\xb0C",
+        label_rect_id: "storage_setpoint_label",
+        value_rect_id: "storage_setpoint_value",
+        offset: 6,
+        texts: {
+            de: {
+                label: "Soll",
+                desc: "Speicher Soll"
+            },
+            en: {
+                label: "Setpoint",
+                desc: "Storage setpoint"
+            },
+            it: {
+                label: "Impostata",
+                desc: "Temperatura serbatoio impostata"
+            }
+        }
+    },
+    {
+        id: "buh_power",
+        domain: "sensor",
+        unit: [
+            "W",
+            "kW"
+        ],
+        label_rect_id: "buh_info_label",
+        value_rect_id: "buh_info_value",
+        offset: 6,
+        digits: 0,
+        optional: true,
+        parent: "buh",
+        texts: {
+            de: {
+                label: "Heizstab",
+                desc: "Heizstableistung"
+            },
+            en: {
+                label: "Heating rod",
+                desc: "Heating rod power"
+            },
+            it: {
+                label: "Resistenza",
+                desc: "Potenza della barra riscaldante"
+            }
+        }
+    },
+    {
+        id: "mischer",
+        domain: "sensor",
+        device: "CAN",
+        unit: "%",
+        value_rect_id: "dhw_mixer_value",
+        offset: 6,
+        digits: 0,
+        fontSize: "40px",
+        texts: {
+            de: {
+                desc: "Mischer"
+            },
+            en: {
+                desc: "Mixer"
+            },
+            it: {
+                desc: "Miscelatore"
+            }
+        }
+    },
+    {
+        id: "bypass",
+        domain: "sensor",
+        device: "CAN",
+        unit: "%",
+        value_rect_id: "bypass_value",
+        offset: 6,
+        digits: 0,
+        fontSize: "40px",
+        texts: {
+            de: {
+                desc: "Bypass"
+            },
+            en: {
+                desc: "Bypass"
+            },
+            it: {
+                desc: "Bypass"
+            }
+        }
+    },
+    {
+        id: "fehlercode",
+        domain: "sensor",
+        device: "CAN",
+        value_rect_id: "fehlercode_value",
+        offset: 6,
+        fontSize: "40px",
+        align: "left",
+        category: {
+            de: "Info",
+            en: "Info",
+            it: "Info"
+        },
+        texts: {
+            de: {
+                suffix: "Fehlercode: ",
+                desc: "Fehlercode"
+            },
+            en: {
+                suffix: "Error code: ",
+                desc: "Error code"
+            },
+            it: {
+                suffix: "Codice errore: ",
+                desc: "Codice di errore"
+            }
+        }
+    },
+    {
+        id: "betriebsmodus",
+        domain: "select",
+        device: "CAN",
+        value_rect_id: "betriebsmodus_value",
+        offset: 6,
+        fontSize: "40px",
+        align: "left",
+        texts: {
+            de: {
+                suffix: "Modus: ",
+                desc: "Betriebsmodus"
+            },
+            en: {
+                suffix: "Mode: ",
+                desc: "Operating mode"
+            },
+            it: {
+                suffix: "Modalit\xe0: ",
+                desc: "Modalit\xe0 di funzionamento"
+            }
+        }
+    },
+    {
+        id: "betriebsart",
+        domain: "sensor",
+        device: "CAN",
+        value_rect_id: "betriebsart_value",
+        offset: 6,
+        fontSize: "40px",
+        align: "left",
+        texts: {
+            de: {
+                suffix: "Betriebsart: ",
+                desc: "Betriebsart"
+            },
+            en: {
+                suffix: "Mode of oper.: ",
+                desc: "Mode of operating"
+            },
+            it: {
+                suffix: "Tipo di funzionamento.: ",
+                desc: "Tipo di funzionamento"
+            }
+        }
+    },
+    {
+        id: "thermische_leistung",
+        domain: "sensor",
+        device: "CAN",
+        unit: "kW",
+        value_rect_id: "therm_leistung_value",
+        offset: 6,
+        fontSize: "40px",
+        align: "left",
+        suffix: "Therm. Leistung: ",
+        texts: {
+            de: {
+                suffix: "Thermische Leistung: ",
+                desc: "Thermische Leistung"
+            },
+            en: {
+                suffix: "Thermal power: ",
+                desc: "Thermal power"
+            },
+            it: {
+                suffix: "Potenza termica: ",
+                desc: "Potenza termica"
+            }
+        }
+    },
+    {
+        id: "el_power",
+        domain: "sensor",
+        unit: "kW",
+        value_rect_id: "el_power_value",
+        offset: 6,
+        fontSize: "40px",
+        align: "left",
+        optional: true,
+        texts: {
+            de: {
+                suffix: "Elekrische Leistung: ",
+                desc: "Elektrische Leistung"
+            },
+            en: {
+                suffix: "Electric power: ",
+                desc: "Electric power"
+            },
+            it: {
+                suffix: "Potenza elettrica: ",
+                desc: "Potenza elettrica"
+            }
+        }
+    },
+    {
+        id: "cop",
+        domain: "sensor",
+        value_rect_id: "cop_value",
+        offset: 6,
+        fontSize: "40px",
+        align: "left",
+        optional: true,
+        texts: {
+            de: {
+                suffix: "COP: ",
+                desc: "COP"
+            },
+            en: {
+                suffix: "COP: ",
+                desc: "COP"
+            },
+            it: {
+                suffix: "COP: ",
+                desc: "COP"
+            }
+        }
+    },
+    {
+        id: "t_room_is",
+        domain: "sensor",
+        value_rect_id: "t_room_is_value",
+        offset: 6,
+        fontSize: "40px",
+        align: "left",
+        optional: true,
+        texts: {
+            de: {
+                suffix: "Raum-Ist: ",
+                desc: "Raum-Ist"
+            },
+            en: {
+                suffix: "Room setpoint: ",
+                desc: "Room setpoint"
+            },
+            it: {
+                suffix: "Temperatura ambiente impostata: ",
+                desc: "Temperatura ambiente impostata"
+            }
+        }
+    },
+    {
+        id: "system_date",
+        domain: "sensor",
+        device: "CAN",
+        value_rect_id: "date_value",
+        parent: "date_value",
+        offset: 6,
+        fontSize: "40px",
+        optional: true,
+        texts: {
+            de: {
+                desc: "Datum"
+            },
+            en: {
+                desc: "Date"
+            },
+            it: {
+                desc: "Data"
+            }
+        }
+    },
+    {
+        id: "system_time",
+        domain: "sensor",
+        device: "CAN",
+        value_rect_id: "time_value",
+        parent: "time_value",
+        offset: 6,
+        fontSize: "40px",
+        optional: true,
+        texts: {
+            de: {
+                desc: "Zeit"
+            },
+            en: {
+                desc: "Time"
+            },
+            it: {
+                desc: "Ora"
+            }
+        }
+    }
+];
+const $eb5cfe1dd9fe4e85$export$d0d68bb9ed2c643d = [
+    "de",
+    "en",
+    "it"
+];
+const $eb5cfe1dd9fe4e85$export$f8cda7abf1aa048 = {
+    "de": {
+        "on": "An",
+        "off": "Aus"
+    },
+    "en": {
+        "on": "On",
+        "off": "Off"
+    },
+    "it": {
+        "on": "On",
+        "off": "Off"
+    }
+};
+const $eb5cfe1dd9fe4e85$export$127f9a442b42d18 = function(config) {
+    const validEntities = Object.fromEntries(Object.entries(config.entities ?? {}).filter(([key])=>$eb5cfe1dd9fe4e85$export$9b06e6104ce35b16.some((entity_conf)=>entity_conf.id === key)));
+    return {
+        ...config,
+        entities: validEntities
+    };
+};
+
+
+
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */ const $14742f68afc766d6$export$da64fc29f17f9d0e = (e)=>(n)=>"function" == typeof n ? ((e, n)=>(customElements.define(e, n), n))(e, n) : ((e, n)=>{
+            const { kind: t, elements: s } = n;
+            return {
+                kind: t,
+                elements: s,
+                finisher (n) {
+                    customElements.define(e, n);
+                }
+            };
+        })(e, n);
+
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */ const $9cd908ed2625c047$var$i = (i, e)=>"method" === e.kind && e.descriptor && !("value" in e.descriptor) ? {
+        ...e,
+        finisher (n) {
+            n.createProperty(e.key, i);
+        }
+    } : {
+        kind: "field",
+        key: Symbol(),
+        placement: "own",
+        descriptor: {},
+        originalKey: e.key,
+        initializer () {
+            "function" == typeof e.initializer && (this[e.key] = e.initializer.call(this));
+        },
+        finisher (n) {
+            n.createProperty(e.key, i);
+        }
+    }, $9cd908ed2625c047$var$e = (i, e, n)=>{
+    e.constructor.createProperty(n, i);
+};
+function $9cd908ed2625c047$export$d541bacb2bda4494(n) {
+    return (t, o)=>void 0 !== o ? $9cd908ed2625c047$var$e(n, t, o) : $9cd908ed2625c047$var$i(n, t);
+}
+
+
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */ function $04c21ea1ce1f6057$export$ca000e230c0caa3e(t) {
+    return (0, $9cd908ed2625c047$export$d541bacb2bda4494)({
+        ...t,
+        state: !0
+    });
+}
+
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */ const $25e9c5a8f7ecfc69$export$29fd0ed4087278b5 = (e, t, o)=>{
+    Object.defineProperty(t, o, e);
+}, $25e9c5a8f7ecfc69$export$18eb0154d0069a01 = (e, t)=>({
+        kind: "method",
+        placement: "prototype",
+        key: t.key,
+        descriptor: e
+    }), $25e9c5a8f7ecfc69$export$757d561a932dc1cb = ({ finisher: e, descriptor: t })=>(o, n)=>{
+        var r;
+        if (void 0 === n) {
+            const n = null !== (r = o.originalKey) && void 0 !== r ? r : o.key, i = null != t ? {
+                kind: "method",
+                placement: "prototype",
+                key: n,
+                descriptor: t(o.key)
+            } : {
+                ...o,
+                key: n
+            };
+            return null != e && (i.finisher = function(t) {
+                e(t, n);
+            }), i;
+        }
+        {
+            const r = o.constructor;
+            void 0 !== t && Object.defineProperty(o, n, t(n)), null == e || e(r, n);
+        }
+    };
+
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */ function $b4269277b3c48b0c$export$b2b799818fbabcf3(e) {
+    return (0, $25e9c5a8f7ecfc69$export$757d561a932dc1cb)({
+        finisher: (r, t)=>{
+            Object.assign(r.prototype[t], e);
+        }
+    });
+}
+
+
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */ function $02a1f3a787c54a30$export$2fa187e846a241c4(i, n) {
+    return (0, $25e9c5a8f7ecfc69$export$757d561a932dc1cb)({
+        descriptor: (o)=>{
+            const t = {
+                get () {
+                    var o, n;
+                    return null !== (n = null === (o = this.renderRoot) || void 0 === o ? void 0 : o.querySelector(i)) && void 0 !== n ? n : null;
+                },
+                enumerable: !0,
+                configurable: !0
+            };
+            if (n) {
+                const n = "symbol" == typeof o ? Symbol() : "__" + o;
+                t.get = function() {
+                    var o, t;
+                    return void 0 === this[n] && (this[n] = null !== (t = null === (o = this.renderRoot) || void 0 === o ? void 0 : o.querySelector(i)) && void 0 !== t ? t : null), this[n];
+                };
+            }
+            return t;
+        }
+    });
+}
+
+
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */ function $ed34c589b230c255$export$dcd0d083aa86c355(e) {
+    return (0, $25e9c5a8f7ecfc69$export$757d561a932dc1cb)({
+        descriptor: (r)=>({
+                get () {
+                    var r, o;
+                    return null !== (o = null === (r = this.renderRoot) || void 0 === r ? void 0 : r.querySelectorAll(e)) && void 0 !== o ? o : [];
+                },
+                enumerable: !0,
+                configurable: !0
+            })
+    });
+}
+
+
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */ function $ea50f1870b80cbec$export$163dfc35cc43f240(e) {
+    return (0, $25e9c5a8f7ecfc69$export$757d561a932dc1cb)({
+        descriptor: (r)=>({
+                async get () {
+                    var r;
+                    return await this.updateComplete, null === (r = this.renderRoot) || void 0 === r ? void 0 : r.querySelector(e);
+                },
+                enumerable: !0,
+                configurable: !0
+            })
+    });
+}
+
+
+
+/**
+ * @license
+ * Copyright 2021 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */ var $563fcf7ce7e6c5aa$var$n;
+const $563fcf7ce7e6c5aa$var$e = null != (null === ($563fcf7ce7e6c5aa$var$n = window.HTMLSlotElement) || void 0 === $563fcf7ce7e6c5aa$var$n ? void 0 : $563fcf7ce7e6c5aa$var$n.prototype.assignedElements) ? (o, n)=>o.assignedElements(n) : (o, n)=>o.assignedNodes(n).filter((o)=>o.nodeType === Node.ELEMENT_NODE);
+function $563fcf7ce7e6c5aa$export$4682af2d9ee91415(n) {
+    const { slot: l, selector: t } = null != n ? n : {};
+    return (0, $25e9c5a8f7ecfc69$export$757d561a932dc1cb)({
+        descriptor: (o)=>({
+                get () {
+                    var o;
+                    const r = "slot" + (l ? `[name=${l}]` : ":not([name])"), i = null === (o = this.renderRoot) || void 0 === o ? void 0 : o.querySelector(r), s = null != i ? $563fcf7ce7e6c5aa$var$e(i, n) : [];
+                    return t ? s.filter((o)=>o.matches(t)) : s;
+                },
+                enumerable: !0,
+                configurable: !0
+            })
+    });
+}
+
+
+
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */ function $728f1385dd7bf557$export$1bdbe53f9df1b8(o, n, r) {
+    let l, s = o;
+    return "object" == typeof o ? (s = o.slot, l = o) : l = {
+        flatten: n
+    }, r ? (0, $563fcf7ce7e6c5aa$export$4682af2d9ee91415)({
+        slot: s,
+        flatten: n,
+        selector: r
+    }) : (0, $25e9c5a8f7ecfc69$export$757d561a932dc1cb)({
+        descriptor: (e)=>({
+                get () {
+                    var e, t;
+                    const o = "slot" + (s ? `[name=${s}]` : ":not([name])"), n = null === (e = this.renderRoot) || void 0 === e ? void 0 : e.querySelector(o);
+                    return null !== (t = null == n ? void 0 : n.assignedNodes(l)) && void 0 !== t ? t : [];
+                },
+                enumerable: !0,
+                configurable: !0
+            })
+    });
+}
+
+
+
+
 /**
  * @license
  * Copyright 2019 Google LLC
@@ -1164,227 +2273,194 @@ const $ab210b2da7b39b9d$export$f5c524615a7708d6 = {
 
 
 
-/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */ const $14742f68afc766d6$export$da64fc29f17f9d0e = (e)=>(n)=>"function" == typeof n ? ((e, n)=>(customElements.define(e, n), n))(e, n) : ((e, n)=>{
-            const { kind: t, elements: s } = n;
-            return {
-                kind: t,
-                elements: s,
-                finisher (n) {
-                    customElements.define(e, n);
-                }
-            };
-        })(e, n);
-
-
-/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */ const $9cd908ed2625c047$var$i = (i, e)=>"method" === e.kind && e.descriptor && !("value" in e.descriptor) ? {
-        ...e,
-        finisher (n) {
-            n.createProperty(e.key, i);
-        }
-    } : {
-        kind: "field",
-        key: Symbol(),
-        placement: "own",
-        descriptor: {},
-        originalKey: e.key,
-        initializer () {
-            "function" == typeof e.initializer && (this[e.key] = e.initializer.call(this));
-        },
-        finisher (n) {
-            n.createProperty(e.key, i);
-        }
-    }, $9cd908ed2625c047$var$e = (i, e, n)=>{
-    e.constructor.createProperty(n, i);
+const $d067581fc0d59830$var$ensureArray = (value)=>{
+    return Array.isArray(value) ? value : [
+        value
+    ];
 };
-function $9cd908ed2625c047$export$d541bacb2bda4494(n) {
-    return (t, o)=>void 0 !== o ? $9cd908ed2625c047$var$e(n, t, o) : $9cd908ed2625c047$var$i(n, t);
-}
-
-
-
-/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */ function $04c21ea1ce1f6057$export$ca000e230c0caa3e(t) {
-    return (0, $9cd908ed2625c047$export$d541bacb2bda4494)({
-        ...t,
-        state: !0
-    });
-}
-
-
-/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */ const $25e9c5a8f7ecfc69$export$29fd0ed4087278b5 = (e, t, o)=>{
-    Object.defineProperty(t, o, e);
-}, $25e9c5a8f7ecfc69$export$18eb0154d0069a01 = (e, t)=>({
-        kind: "method",
-        placement: "prototype",
-        key: t.key,
-        descriptor: e
-    }), $25e9c5a8f7ecfc69$export$757d561a932dc1cb = ({ finisher: e, descriptor: t })=>(o, n)=>{
-        var r;
-        if (void 0 === n) {
-            const n = null !== (r = o.originalKey) && void 0 !== r ? r : o.key, i = null != t ? {
-                kind: "method",
-                placement: "prototype",
-                key: n,
-                descriptor: t(o.key)
-            } : {
-                ...o,
-                key: n
-            };
-            return null != e && (i.finisher = function(t) {
-                e(t, n);
-            }), i;
+class $d067581fc0d59830$export$70410bc798970b36 extends (0, $ab210b2da7b39b9d$export$3f2f9f5909897157) {
+    async setConfig(config) {
+        // HACK: This call is necessary to load the ha-entity-picker components.
+        const cardHelpers = await window.loadCardHelpers();
+        const entitiesCard = await cardHelpers.createCardElement({
+            type: "entities",
+            entities: []
+        });
+        await entitiesCard.constructor.getConfigElement();
+        // HACK end
+        this.config = (0, $eb5cfe1dd9fe4e85$export$127f9a442b42d18)(config);
+        this.svgItemConfig = (0, $eb5cfe1dd9fe4e85$export$9b06e6104ce35b16).map((svg_item)=>({
+                ...svg_item,
+                entityId: this.config.entities?.[svg_item.id] ?? null
+            }));
+    }
+    willUpdate(changedProperties) {
+        if (changedProperties.has("hass") && this.hass?.language) {
+            const lang = this.hass.language.split("-")[0];
+            this.language = (0, $eb5cfe1dd9fe4e85$export$d0d68bb9ed2c643d).includes(lang) ? lang : "en";
         }
-        {
-            const r = o.constructor;
-            void 0 !== t && Object.defineProperty(o, n, t(n)), null == e || e(r, n);
+    }
+    render() {
+        if (!this.config) return (0, $f58f44579a4747ac$export$c0bb0b647f701bb5)``;
+        const categories = {};
+        if (this.svgItemConfig[0].category) {
+            let lastCategory = this.svgItemConfig[0].category;
+            this.svgItemConfig.forEach((item)=>{
+                let currentCategory = item.category;
+                if (currentCategory) lastCategory = currentCategory;
+                else currentCategory = lastCategory;
+                const category = currentCategory[this.language];
+                if (!categories[category]) categories[category] = [];
+                categories[category].push(item);
+            });
         }
-    };
-
-
-/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */ function $b4269277b3c48b0c$export$b2b799818fbabcf3(e) {
-    return (0, $25e9c5a8f7ecfc69$export$757d561a932dc1cb)({
-        finisher: (r, t)=>{
-            Object.assign(r.prototype[t], e);
-        }
-    });
-}
-
-
-
-/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */ function $02a1f3a787c54a30$export$2fa187e846a241c4(i, n) {
-    return (0, $25e9c5a8f7ecfc69$export$757d561a932dc1cb)({
-        descriptor: (o)=>{
-            const t = {
-                get () {
-                    var o, n;
-                    return null !== (n = null === (o = this.renderRoot) || void 0 === o ? void 0 : o.querySelector(i)) && void 0 !== n ? n : null;
-                },
-                enumerable: !0,
-                configurable: !0
-            };
-            if (n) {
-                const n = "symbol" == typeof o ? Symbol() : "__" + o;
-                t.get = function() {
-                    var o, t;
-                    return void 0 === this[n] && (this[n] = null !== (t = null === (o = this.renderRoot) || void 0 === o ? void 0 : o.querySelector(i)) && void 0 !== t ? t : null), this[n];
-                };
+        const deviceLabel = "HPSU Devices";
+        return (0, $f58f44579a4747ac$export$c0bb0b647f701bb5)`
+            <div class="card-config">
+                <ha-expansion-panel
+                    .header=${deviceLabel}
+                >
+                    <ha-selector
+                        .hass=${this.hass}
+                        .selector=${{
+            device: {}
+        }}
+                        .value=${this.config.canDevice}
+                        @value-changed=${this._entityChanged}
+                        id="can-device-selector"
+                        .placeholder=${"CAN Ger\xe4t ausw\xe4hlen"}
+                        can-device-id=${this.config.canDevice}>
+                    </ha-selector>
+                    <ha-selector
+                        .hass=${this.hass}
+                        .selector=${{
+            device: {}
+        }}
+                        .value=${this.config.uartDevice}
+                        @value-changed=${this._entityChanged}
+                        id="uart-device-selector"
+                        .placeholder=${"UART Ger\xe4t ausw\xe4hlen"}
+                        can-device-id=${this.config.uartDevice}
+                        >
+                    </ha-selector>
+                </ha-expansion-panel>
+                ${Object.keys(categories).map((category)=>(0, $f58f44579a4747ac$export$c0bb0b647f701bb5)`
+                    <ha-expansion-panel
+                        .header=${category}
+                    >
+                        ${categories[category].map((svg_item)=>(0, $f58f44579a4747ac$export$c0bb0b647f701bb5)`
+                            <ha-selector
+                                .hass=${this.hass}
+                                .selector=${{
+                    entity: {
+                        include_entities: this.getRelevantEntityIds(svg_item)
+                    }
+                }}
+                                .placeholder=${svg_item.texts[this.language]?.desc || "<missing>"}
+                                .value=${svg_item.entityId}
+                                @value-changed=${this._entityChanged}
+                                data-id=${svg_item.id}
+                            >
+                            </ha-selector>
+                        `)}
+                    </ha-expansion-panel>
+                `)}
+            </div>
+        `;
+    }
+    getRelevantEntityIds(svg_item) {
+        const relevantEntityIds = [];
+        const targetDeviceId = svg_item.device === "UART" ? this.config.uartDevice : this.config.canDevice;
+        const targetUnit = $d067581fc0d59830$var$ensureArray(svg_item.unit);
+        for(const entityId in this.hass.states){
+            if (!Object.prototype.hasOwnProperty.call(this.hass.states, entityId)) continue;
+            const entity = this.hass.states[entityId];
+            const domain = entityId.substring(0, entityId.indexOf('.'));
+            if (svg_item.device && targetDeviceId) {
+                const entityRegistryEntry = this.hass.entities[entityId];
+                if (!entityRegistryEntry || entityRegistryEntry.device_id !== targetDeviceId) continue;
             }
-            return t;
+            if (svg_item.domain !== undefined && svg_item.domain !== domain) continue;
+            if (domain !== "select") {
+                const unitOfMeasurement = entity.attributes.unit_of_measurement;
+                if (!targetUnit.includes(unitOfMeasurement)) continue;
+            }
+            relevantEntityIds.push(entityId);
         }
-    });
+        return relevantEntityIds;
+    }
+    _entityChanged(event) {
+        event.stopPropagation();
+        const picker = event.target;
+        const updatedEntities = {
+            ...this.config.entities
+        };
+        let canDevice = this.config.canDevice;
+        if (picker.getAttribute("id") == "can-device-selector") canDevice = event.detail.value;
+        let uartDevice = this.config.uartDevice;
+        if (picker.getAttribute("id") == "uart-device-selector") uartDevice = event.detail.value;
+        const entityId = picker.getAttribute("data-id");
+        if (entityId) updatedEntities[entityId] = event.detail.value;
+        this.config = {
+            ...this.config,
+            canDevice: canDevice,
+            uartDevice: uartDevice,
+            entities: $d067581fc0d59830$export$70410bc798970b36.sortRecordBySvgOrder(updatedEntities, this.svgItemConfig)
+        };
+        this.dispatchEvent(new CustomEvent('config-changed', {
+            detail: {
+                config: this.config
+            },
+            bubbles: true,
+            composed: true
+        }));
+    }
+    static sortRecordBySvgOrder(data, svgItems) {
+        const dataKeys = Object.keys(data);
+        const sortedEntries = svgItems.filter((item)=>dataKeys.includes(item.id)).map((item)=>[
+                item.id,
+                data[item.id]
+            ]);
+        return Object.fromEntries(sortedEntries);
+    }
+    static get styles() {
+        return (0, $def2de46b9306e8a$export$dbf350e5966cf602)`
+            .card-config {
+                display: flex;
+                flex-direction: column;
+                padding: 16px;
+            }
+            h2 {
+                font-size: 20px;
+                margin-bottom: 16px;
+                margin-top: 24px;
+            }
+            ha-selector, ha-device-picker, ha-entity-picker {
+                margin: 5px;
+                display: block;
+            }
+        `;
+    }
+    constructor(...args){
+        super(...args), this.language = "en", this.svgItemConfig = [];
+    }
 }
-
-
-
-/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */ function $ed34c589b230c255$export$dcd0d083aa86c355(e) {
-    return (0, $25e9c5a8f7ecfc69$export$757d561a932dc1cb)({
-        descriptor: (r)=>({
-                get () {
-                    var r, o;
-                    return null !== (o = null === (r = this.renderRoot) || void 0 === r ? void 0 : r.querySelectorAll(e)) && void 0 !== o ? o : [];
-                },
-                enumerable: !0,
-                configurable: !0
-            })
-    });
-}
-
-
-
-/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */ function $ea50f1870b80cbec$export$163dfc35cc43f240(e) {
-    return (0, $25e9c5a8f7ecfc69$export$757d561a932dc1cb)({
-        descriptor: (r)=>({
-                async get () {
-                    var r;
-                    return await this.updateComplete, null === (r = this.renderRoot) || void 0 === r ? void 0 : r.querySelector(e);
-                },
-                enumerable: !0,
-                configurable: !0
-            })
-    });
-}
-
-
-
-/**
- * @license
- * Copyright 2021 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */ var $563fcf7ce7e6c5aa$var$n;
-const $563fcf7ce7e6c5aa$var$e = null != (null === ($563fcf7ce7e6c5aa$var$n = window.HTMLSlotElement) || void 0 === $563fcf7ce7e6c5aa$var$n ? void 0 : $563fcf7ce7e6c5aa$var$n.prototype.assignedElements) ? (o, n)=>o.assignedElements(n) : (o, n)=>o.assignedNodes(n).filter((o)=>o.nodeType === Node.ELEMENT_NODE);
-function $563fcf7ce7e6c5aa$export$4682af2d9ee91415(n) {
-    const { slot: l, selector: t } = null != n ? n : {};
-    return (0, $25e9c5a8f7ecfc69$export$757d561a932dc1cb)({
-        descriptor: (o)=>({
-                get () {
-                    var o;
-                    const r = "slot" + (l ? `[name=${l}]` : ":not([name])"), i = null === (o = this.renderRoot) || void 0 === o ? void 0 : o.querySelector(r), s = null != i ? $563fcf7ce7e6c5aa$var$e(i, n) : [];
-                    return t ? s.filter((o)=>o.matches(t)) : s;
-                },
-                enumerable: !0,
-                configurable: !0
-            })
-    });
-}
-
-
-
-
-/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */ function $728f1385dd7bf557$export$1bdbe53f9df1b8(o, n, r) {
-    let l, s = o;
-    return "object" == typeof o ? (s = o.slot, l = o) : l = {
-        flatten: n
-    }, r ? (0, $563fcf7ce7e6c5aa$export$4682af2d9ee91415)({
-        slot: s,
-        flatten: n,
-        selector: r
-    }) : (0, $25e9c5a8f7ecfc69$export$757d561a932dc1cb)({
-        descriptor: (e)=>({
-                get () {
-                    var e, t;
-                    const o = "slot" + (s ? `[name=${s}]` : ":not([name])"), n = null === (e = this.renderRoot) || void 0 === e ? void 0 : e.querySelector(o);
-                    return null !== (t = null == n ? void 0 : n.assignedNodes(l)) && void 0 !== t ? t : [];
-                },
-                enumerable: !0,
-                configurable: !0
-            })
-    });
-}
+(0, $24c52f343453d62d$export$29e00dfd3077644b)([
+    (0, $9cd908ed2625c047$export$d541bacb2bda4494)({
+        attribute: false
+    })
+], $d067581fc0d59830$export$70410bc798970b36.prototype, "hass", void 0);
+(0, $24c52f343453d62d$export$29e00dfd3077644b)([
+    (0, $9cd908ed2625c047$export$d541bacb2bda4494)({
+        type: Object
+    })
+], $d067581fc0d59830$export$70410bc798970b36.prototype, "config", void 0);
+(0, $24c52f343453d62d$export$29e00dfd3077644b)([
+    (0, $04c21ea1ce1f6057$export$ca000e230c0caa3e)()
+], $d067581fc0d59830$export$70410bc798970b36.prototype, "language", void 0);
+(0, $24c52f343453d62d$export$29e00dfd3077644b)([
+    (0, $04c21ea1ce1f6057$export$ca000e230c0caa3e)()
+], $d067581fc0d59830$export$70410bc798970b36.prototype, "svgItemConfig", void 0);
 
 
 
@@ -1460,968 +2536,6 @@ const $a4df01ff0b0132fe$export$b6e69390c23686fb = (0, $107bb7d062dde330$export$9
 $33e813419ea8f3a8$var$t.directiveName = "unsafeSVG", $33e813419ea8f3a8$var$t.resultType = 2;
 const $33e813419ea8f3a8$export$1cb98903879b8bf5 = (0, $107bb7d062dde330$export$99b43ad1ed32e735)($33e813419ea8f3a8$var$t);
 
-
-
-
-
-
-
-const $eb5cfe1dd9fe4e85$export$9b06e6104ce35b16 = [
-    {
-        id: "ta",
-        label_rect_id: "ta_label",
-        type: "sensor",
-        value_rect_id: "ta_val",
-        offset: 6,
-        category: {
-            de: "Oben",
-            en: "Top",
-            it: "In alto"
-        },
-        unit: "\xb0C",
-        texts: {
-            de: {
-                label: "TA",
-                desc: "TA - Au\xdfentemperatur"
-            },
-            en: {
-                label: "TA",
-                desc: "TA - Outside Temperature"
-            },
-            it: {
-                label: "TA",
-                desc: "TA - Temperatura esterna"
-            }
-        }
-    },
-    {
-        id: "ta2",
-        label_rect_id: "ta2_label",
-        type: "sensor",
-        value_rect_id: "ta2_val",
-        offset: 6,
-        unit: "\xb0C",
-        optional: true,
-        parent: "TA2",
-        texts: {
-            de: {
-                label: "TA2",
-                desc: "TA2 - Im Au\xdfenger\xe4t"
-            },
-            en: {
-                label: "TA2",
-                desc: "TA2 - In the outdoor unit"
-            },
-            it: {
-                label: "TA2",
-                desc: "TA2 - Nell'unit\xe0 esterna"
-            }
-        }
-    },
-    {
-        id: "expansion_valve",
-        label_rect_id: "eev_label",
-        type: "sensor",
-        value_rect_id: "eev_val",
-        offset: 6,
-        unit: "pls",
-        digits: 0,
-        texts: {
-            de: {
-                label: "EEV",
-                desc: "Elektonisches Expansionsventil"
-            },
-            en: {
-                label: "EEV",
-                desc: "Electronic Expansion Valve"
-            },
-            it: {
-                label: "EEV",
-                desc: "Valvola di espansione elettronica"
-            }
-        }
-    },
-    {
-        id: "pressure_equalization",
-        type: "binary_sensor",
-        texts: {
-            de: {
-                desc: "Druckausgleich"
-            },
-            en: {
-                desc: "Pressure equalization"
-            },
-            it: {
-                desc: "Equalizzazione della pressione"
-            }
-        }
-    },
-    {
-        id: "kondensat",
-        label_rect_id: "kondensat_label",
-        type: "sensor",
-        value_rect_id: "kondensat_value",
-        offset: 6,
-        unit: "\xb0C",
-        texts: {
-            de: {
-                label: "Kondensat",
-                desc: "Kondensat"
-            },
-            en: {
-                label: "Condensate",
-                desc: "Condensate"
-            },
-            it: {
-                label: "Condensato",
-                desc: "Condensato"
-            }
-        }
-    },
-    {
-        id: "umwaelzpumpe",
-        label_rect_id: "uwp_label",
-        type: "sensor",
-        value_rect_id: "uwp_value",
-        offset: 6,
-        unit: "%",
-        digits: 0,
-        texts: {
-            de: {
-                label: "Umw\xe4lzpumpe",
-                desc: "Umw\xe4lzpumpe"
-            },
-            en: {
-                label: "Circulation pump",
-                desc: "Circulation pump"
-            },
-            it: {
-                label: "Pompa circ.",
-                desc: "Pompa di circolazione"
-            }
-        }
-    },
-    {
-        id: "umwaelzpumpe_an_aus",
-        type: "binary_sensor",
-        value_rect_id: "circ_pump_rect",
-        offset: 2,
-        fontSize: "30px",
-        texts: {
-            de: {
-                desc: "Status Umw\xe4lzpumpe"
-            },
-            en: {
-                desc: "Circulation pump status"
-            },
-            it: {
-                desc: "Stato pompa di circolazione"
-            }
-        }
-    },
-    {
-        id: "durchfluss",
-        type: "sensor",
-        label_rect_id: "flow_rate_label",
-        value_rect_id: "flow_rate_value",
-        offset: 6,
-        digits: 0,
-        texts: {
-            de: {
-                label: "Durchfluss",
-                desc: "Durchfluss"
-            },
-            en: {
-                label: "Flow rate",
-                desc: "Flow rate"
-            },
-            it: {
-                label: "Portata",
-                desc: "Portata"
-            }
-        }
-    },
-    {
-        id: "ruecklauf_1",
-        type: "sensor",
-        label_rect_id: "return_flow_label",
-        value_rect_id: "return_flow_can_value",
-        offset: 6,
-        unit: "\xb0C",
-        texts: {
-            de: {
-                label: "R\xfccklauf",
-                desc: "R\xfccklauf - CAN"
-            },
-            en: {
-                label: "Return flow",
-                desc: "Return flow - CAN"
-            },
-            it: {
-                label: "Ritorno",
-                desc: "Ritorno - CAN"
-            }
-        }
-    },
-    {
-        id: "ruecklauf_2",
-        type: "sensor",
-        value_rect_id: "return_flow_uart_value",
-        offset: 6,
-        unit: "\xb0C",
-        texts: {
-            de: {
-                desc: "R\xfccklauf - UART"
-            },
-            en: {
-                desc: "Return flow - UART"
-            },
-            it: {
-                desc: "Ritorno - UART"
-            }
-        }
-    },
-    {
-        id: "verdampfer",
-        type: "sensor",
-        label_rect_id: "evaporator_label",
-        value_rect_id: "evaporator_value",
-        offset: 6,
-        category: {
-            de: "Mitte",
-            en: "Middle",
-            it: "Centro"
-        },
-        unit: "\xb0C",
-        texts: {
-            de: {
-                label: "Verdampfer",
-                desc: "Verdampfer"
-            },
-            en: {
-                label: "Evaporator",
-                desc: "Evaporator"
-            },
-            it: {
-                label: "Evaporatore",
-                desc: "Evaporatore"
-            }
-        }
-    },
-    {
-        id: "hot_gas",
-        type: "sensor",
-        label_rect_id: "hot_gas_label",
-        value_rect_id: "hot_gas_value",
-        offset: 6,
-        texts: {
-            de: {
-                label: "Hei\xdfgas",
-                desc: "Hei\xdfgas"
-            },
-            en: {
-                label: "Hot gas",
-                desc: "Hot gas"
-            },
-            it: {
-                label: "Gas caldo",
-                desc: "Gas caldo"
-            }
-        }
-    },
-    {
-        id: "hot_gas_condenser",
-        type: "sensor",
-        label_rect_id: "hot_gas_condenser_label",
-        value_rect_id: "hot_gas_condenser_value",
-        offset: 6,
-        optional: true,
-        parent: "hot_gas_condenser",
-        texts: {
-            de: {
-                label: "Hei\xdfgas",
-                desc: "Hei\xdfgas am Kondensator"
-            },
-            en: {
-                label: "Hot gas",
-                desc: "Hot gas at the condenser"
-            },
-            it: {
-                label: "Gas caldo",
-                desc: "Gas caldo al condensatore"
-            }
-        }
-    },
-    {
-        id: "spread",
-        type: "sensor",
-        label_rect_id: "spread_label",
-        value_rect_id: "spread_value",
-        offset: 6,
-        unit: "\xb0C",
-        texts: {
-            de: {
-                label: "Spreizung",
-                desc: "Spreizung"
-            },
-            en: {
-                label: "Spread",
-                desc: "Temperature spread"
-            },
-            it: {
-                label: "\u0394T",
-                desc: "Differenza di temperatura"
-            }
-        }
-    },
-    {
-        id: "vorlauf_1",
-        type: "sensor",
-        label_rect_id: "flow_label",
-        value_rect_id: "flow_can_value",
-        offset: 6,
-        unit: "\xb0C",
-        texts: {
-            de: {
-                label: "Vorlauf",
-                desc: "Vorlauf - CAN"
-            },
-            en: {
-                label: "Flow",
-                desc: "Flow - CAN"
-            },
-            it: {
-                label: "Mandata",
-                desc: "Mandata - CAN"
-            }
-        }
-    },
-    {
-        id: "vorlauf_2",
-        type: "sensor",
-        value_rect_id: "flow_uart_value",
-        offset: 6,
-        unit: "\xb0C",
-        texts: {
-            de: {
-                desc: "Vorlauf - UART"
-            },
-            en: {
-                desc: "Flow - UART"
-            },
-            it: {
-                desc: "Mandata - UART"
-            }
-        }
-    },
-    {
-        id: "vorlauf_soll",
-        type: "sensor",
-        label_rect_id: "flow_setpoint_label",
-        value_rect_id: "flow_setpoint_value",
-        offset: 6,
-        unit: "\xb0C",
-        texts: {
-            de: {
-                label: "Vorlauf-Soll",
-                desc: "Vorlauf Soll"
-            },
-            en: {
-                label: "Setpoint",
-                desc: "Flow setpoint"
-            },
-            it: {
-                label: "Impostata",
-                desc: "Temperatura di mandata impostata"
-            }
-        }
-    },
-    {
-        id: "wasserdruck",
-        type: "sensor",
-        label_rect_id: "pressure_label",
-        value_rect_id: "pressure_value",
-        offset: 6,
-        texts: {
-            de: {
-                label: "Druck",
-                desc: "Wasserdruck"
-            },
-            en: {
-                label: "Pressure",
-                desc: "Water Pressure"
-            },
-            it: {
-                label: "Pressione",
-                desc: "Pressione dell'acqua"
-            }
-        }
-    },
-    {
-        id: "vorlauf_bh_1",
-        type: "sensor",
-        label_rect_id: "flow_bh_label",
-        value_rect_id: "flow_bh_can_value",
-        offset: 6,
-        unit: "\xb0C",
-        texts: {
-            de: {
-                label: "Vorlauf BH",
-                desc: "VorlaufBH - CAN"
-            },
-            en: {
-                label: "Flow BH",
-                desc: "Flow BH - CAN"
-            },
-            it: {
-                label: "Mandata BH",
-                desc: "Mandata al riscaldatore di backup - CAN"
-            }
-        }
-    },
-    {
-        id: "vorlauf_bh_2",
-        type: "sensor",
-        value_rect_id: "flow_bh_uart_value",
-        offset: 6,
-        unit: "\xb0C",
-        texts: {
-            de: {
-                desc: "VorlaufBH - UART"
-            },
-            en: {
-                desc: "Flow BH - UART"
-            },
-            it: {
-                desc: "Flow BH - UART"
-            }
-        }
-    },
-    {
-        id: "kompressor_an_aus",
-        type: "binary_sensor",
-        value_rect_id: "comp_rect",
-        offset: 2,
-        fontSize: "40px",
-        texts: {
-            de: {
-                desc: "Status Kompressor"
-            },
-            en: {
-                desc: "Compressor status"
-            },
-            it: {
-                desc: "Stato del compressore"
-            }
-        }
-    },
-    {
-        id: "luefter",
-        type: "sensor",
-        label_rect_id: "fan_label",
-        value_rect_id: "fan_value",
-        offset: 6,
-        category: {
-            de: "Unten",
-            en: "Bottom",
-            it: "In basso"
-        },
-        unit: "RPM",
-        digits: 0,
-        texts: {
-            de: {
-                label: "L\xfcfter",
-                desc: "L\xfcfter Drehzahl"
-            },
-            en: {
-                label: "Fan",
-                desc: "Fan speed"
-            },
-            it: {
-                label: "Ventilatore",
-                desc: "Velocit\xe0 del ventilatore"
-            }
-        }
-    },
-    {
-        id: "verdichter",
-        type: "sensor",
-        label_rect_id: "compressor_label",
-        value_rect_id: "compressor_value",
-        offset: 6,
-        unit: "RPM",
-        digits: 0,
-        texts: {
-            de: {
-                label: "Verdichter",
-                desc: "Verdichter Drehzahl"
-            },
-            en: {
-                label: "Compressor",
-                desc: "Compressor speed"
-            },
-            it: {
-                label: "Compressore",
-                desc: "Velocit\xe0 del compressore"
-            }
-        }
-    },
-    {
-        id: "speicher",
-        type: "sensor",
-        label_rect_id: "storage_label",
-        value_rect_id: "storage_value",
-        offset: 6,
-        unit: "\xb0C",
-        texts: {
-            de: {
-                label: "Speicher",
-                desc: "Speicher Ist"
-            },
-            en: {
-                label: "Storage",
-                desc: "Current storage value"
-            },
-            it: {
-                label: "Serbatoio",
-                desc: "Temperatura serbatoio attuale"
-            }
-        }
-    },
-    {
-        id: "speicher_soll",
-        type: "select",
-        label_rect_id: "storage_setpoint_label",
-        value_rect_id: "storage_setpoint_value",
-        offset: 6,
-        texts: {
-            de: {
-                label: "Soll",
-                desc: "Speicher Soll"
-            },
-            en: {
-                label: "Setpoint",
-                desc: "Storage setpoint"
-            },
-            it: {
-                label: "Impostata",
-                desc: "Temperatura serbatoio impostata"
-            }
-        }
-    },
-    {
-        id: "buh_power",
-        type: "sensor",
-        label_rect_id: "buh_info_label",
-        value_rect_id: "buh_info_value",
-        offset: 6,
-        unit: "kW",
-        digits: 0,
-        optional: true,
-        parent: "buh",
-        texts: {
-            de: {
-                label: "Heizstab",
-                desc: "Heizstableistung"
-            },
-            en: {
-                label: "Heating rod",
-                desc: "Heating rod power"
-            },
-            it: {
-                label: "Resistenza",
-                desc: "Potenza della barra riscaldante"
-            }
-        }
-    },
-    {
-        id: "mischer",
-        type: "sensor",
-        value_rect_id: "dhw_mixer_value",
-        offset: 6,
-        unit: "%",
-        digits: 0,
-        fontSize: "40px",
-        texts: {
-            de: {
-                desc: "Mischer"
-            },
-            en: {
-                desc: "Mixer"
-            },
-            it: {
-                desc: "Miscelatore"
-            }
-        }
-    },
-    {
-        id: "bypass",
-        type: "sensor",
-        value_rect_id: "bypass_value",
-        offset: 6,
-        unit: "%",
-        digits: 0,
-        fontSize: "40px",
-        texts: {
-            de: {
-                desc: "Bypass"
-            },
-            en: {
-                desc: "Bypass"
-            },
-            it: {
-                desc: "Bypass"
-            }
-        }
-    },
-    {
-        id: "fehlercode",
-        type: "text_sensor",
-        value_rect_id: "fehlercode_value",
-        offset: 6,
-        fontSize: "40px",
-        align: "left",
-        category: {
-            de: "Info",
-            en: "Info",
-            it: "Info"
-        },
-        texts: {
-            de: {
-                suffix: "Fehlercode: ",
-                desc: "Fehlercode"
-            },
-            en: {
-                suffix: "Error code: ",
-                desc: "Error code"
-            },
-            it: {
-                suffix: "Codice errore: ",
-                desc: "Codice di errore"
-            }
-        }
-    },
-    {
-        id: "betriebsmodus",
-        type: "select",
-        value_rect_id: "betriebsmodus_value",
-        offset: 6,
-        fontSize: "40px",
-        align: "left",
-        texts: {
-            de: {
-                suffix: "Modus: ",
-                desc: "Betriebsmodus"
-            },
-            en: {
-                suffix: "Mode: ",
-                desc: "Operating mode"
-            },
-            it: {
-                suffix: "Modalit\xe0: ",
-                desc: "Modalit\xe0 di funzionamento"
-            }
-        }
-    },
-    {
-        id: "betriebsart",
-        type: "text_sensor",
-        value_rect_id: "betriebsart_value",
-        offset: 6,
-        fontSize: "40px",
-        align: "left",
-        texts: {
-            de: {
-                suffix: "Betriebsart: ",
-                desc: "Betriebsart"
-            },
-            en: {
-                suffix: "Mode of oper.: ",
-                desc: "Mode of operating"
-            },
-            it: {
-                suffix: "Tipo di funzionamento.: ",
-                desc: "Tipo di funzionamento"
-            }
-        }
-    },
-    {
-        id: "thermische_leistung",
-        type: "sensor",
-        value_rect_id: "therm_leistung_value",
-        offset: 6,
-        fontSize: "40px",
-        align: "left",
-        suffix: "Therm. Leistung: ",
-        texts: {
-            de: {
-                suffix: "Thermische Leistung: ",
-                desc: "Thermische Leistung"
-            },
-            en: {
-                suffix: "Thermal power: ",
-                desc: "Thermal power"
-            },
-            it: {
-                suffix: "Potenza termica: ",
-                desc: "Potenza termica"
-            }
-        }
-    },
-    {
-        id: "el_power",
-        type: "sensor",
-        value_rect_id: "el_power_value",
-        offset: 6,
-        fontSize: "40px",
-        align: "left",
-        optional: true,
-        texts: {
-            de: {
-                suffix: "Elekrische Leistung: ",
-                desc: "Elektrische Leistung"
-            },
-            en: {
-                suffix: "Electric power: ",
-                desc: "Electric power"
-            },
-            it: {
-                suffix: "Potenza elettrica: ",
-                desc: "Potenza elettrica"
-            }
-        }
-    },
-    {
-        id: "cop",
-        type: "sensor",
-        value_rect_id: "cop_value",
-        offset: 6,
-        fontSize: "40px",
-        align: "left",
-        optional: true,
-        texts: {
-            de: {
-                suffix: "COP: ",
-                desc: "COP"
-            },
-            en: {
-                suffix: "COP: ",
-                desc: "COP"
-            },
-            it: {
-                suffix: "COP: ",
-                desc: "COP"
-            }
-        }
-    },
-    {
-        id: "t_room_is",
-        type: "sensor",
-        value_rect_id: "t_room_is_value",
-        offset: 6,
-        fontSize: "40px",
-        align: "left",
-        optional: true,
-        texts: {
-            de: {
-                suffix: "Raum-Ist: ",
-                desc: "Raum-Ist"
-            },
-            en: {
-                suffix: "Room setpoint: ",
-                desc: "Room setpoint"
-            },
-            it: {
-                suffix: "Temperatura ambiente impostata: ",
-                desc: "Temperatura ambiente impostata"
-            }
-        }
-    },
-    {
-        id: "system_date",
-        type: "sensor",
-        value_rect_id: "date_value",
-        parent: "date_value",
-        offset: 6,
-        fontSize: "40px",
-        optional: true,
-        texts: {
-            de: {
-                desc: "Datum"
-            },
-            en: {
-                desc: "Date"
-            },
-            it: {
-                desc: "Data"
-            }
-        }
-    },
-    {
-        id: "system_time",
-        type: "sensor",
-        value_rect_id: "time_value",
-        parent: "time_value",
-        offset: 6,
-        fontSize: "40px",
-        optional: true,
-        texts: {
-            de: {
-                desc: "Zeit"
-            },
-            en: {
-                desc: "Time"
-            },
-            it: {
-                desc: "Ora"
-            }
-        }
-    }
-];
-const $eb5cfe1dd9fe4e85$export$d0d68bb9ed2c643d = [
-    "de",
-    "en",
-    "it"
-];
-const $eb5cfe1dd9fe4e85$export$f8cda7abf1aa048 = {
-    "de": {
-        "on": "An",
-        "off": "Aus"
-    },
-    "en": {
-        "on": "On",
-        "off": "Off"
-    },
-    "it": {
-        "on": "On",
-        "off": "Off"
-    }
-};
-const $eb5cfe1dd9fe4e85$export$127f9a442b42d18 = function(config) {
-    const validEntities = Object.fromEntries(Object.entries(config.entities ?? {}).filter(([key])=>$eb5cfe1dd9fe4e85$export$9b06e6104ce35b16.some((entity_conf)=>entity_conf.id === key)));
-    return {
-        ...config,
-        entities: validEntities
-    };
-};
-
-
-class $d067581fc0d59830$export$70410bc798970b36 extends (0, $ab210b2da7b39b9d$export$3f2f9f5909897157) {
-    async setConfig(config) {
-        // HACK: This call is necessary to load the ha-entity-picker components.
-        const cardHelpers = await window.loadCardHelpers();
-        const entitiesCard = await cardHelpers.createCardElement({
-            type: "entities",
-            entities: []
-        });
-        await entitiesCard.constructor.getConfigElement();
-        // HACK end
-        this.config = (0, $eb5cfe1dd9fe4e85$export$127f9a442b42d18)(config);
-        this.svgItemConfig = (0, $eb5cfe1dd9fe4e85$export$9b06e6104ce35b16).map((svg_item)=>({
-                ...svg_item,
-                entityId: this.config.entities?.[svg_item.id] ?? null
-            }));
-    }
-    willUpdate(changedProperties) {
-        if (changedProperties.has("hass") && this.hass?.language) {
-            const lang = this.hass.language.split("-")[0];
-            this.language = (0, $eb5cfe1dd9fe4e85$export$d0d68bb9ed2c643d).includes(lang) ? lang : "en";
-        }
-    }
-    render() {
-        if (!this.config) return (0, $f58f44579a4747ac$export$c0bb0b647f701bb5)``;
-        const categories = {};
-        if (this.svgItemConfig[0].category) {
-            let lastCategory = this.svgItemConfig[0].category;
-            this.svgItemConfig.forEach((item)=>{
-                let currentCategory = item.category;
-                if (currentCategory) lastCategory = currentCategory;
-                else currentCategory = lastCategory;
-                const category = currentCategory[this.language];
-                if (!categories[category]) categories[category] = [];
-                categories[category].push(item);
-            });
-        }
-        return (0, $f58f44579a4747ac$export$c0bb0b647f701bb5)`
-            <div class="card-config">
-                ${Object.keys(categories).map((category)=>(0, $f58f44579a4747ac$export$c0bb0b647f701bb5)`
-                    <ha-expansion-panel
-                        .header=${category}
-                    >
-                        ${categories[category].map((svg_item)=>(0, $f58f44579a4747ac$export$c0bb0b647f701bb5)`
-                            <ha-entity-picker
-                                allow-custom-entity
-                                data-id=${svg_item.id}
-                                label=${svg_item.texts[this.language]?.desc || "<missing>"}
-                                .value=${svg_item.entityId}
-                                .hass=${this.hass}
-                                .includeDomains=${svg_item.type}
-                                @value-changed=${this._entityChanged}
-                            ></ha-entity-picker>
-                        `)}
-                    </ha-expansion-panel>
-                `)}
-            </div>
-        `;
-    }
-    _entityChanged(event) {
-        event.stopPropagation();
-        const picker = event.target;
-        const entityId = picker.getAttribute("data-id");
-        if (!entityId) return;
-        const updatedEntities = {
-            ...this.config.entities
-        };
-        updatedEntities[entityId] = event.detail.value;
-        this.config = {
-            ...this.config,
-            entities: updatedEntities
-        };
-        this.dispatchEvent(new CustomEvent('config-changed', {
-            detail: {
-                config: this.config
-            },
-            bubbles: true,
-            composed: true
-        }));
-    }
-    static get styles() {
-        return (0, $def2de46b9306e8a$export$dbf350e5966cf602)`
-            .card-config {
-                display: flex;
-                flex-direction: column;
-                padding: 16px;
-            }
-            h2 {
-                font-size: 20px;
-                margin-bottom: 16px;
-                margin-top: 24px;
-            }
-            ha-entity-picker {
-                margin-bottom: 16px;
-            }
-        `;
-    }
-    constructor(...args){
-        super(...args), this.language = "en", this.svgItemConfig = [];
-    }
-}
-(0, $24c52f343453d62d$export$29e00dfd3077644b)([
-    (0, $9cd908ed2625c047$export$d541bacb2bda4494)({
-        attribute: false
-    })
-], $d067581fc0d59830$export$70410bc798970b36.prototype, "hass", void 0);
-(0, $24c52f343453d62d$export$29e00dfd3077644b)([
-    (0, $9cd908ed2625c047$export$d541bacb2bda4494)({
-        type: Object
-    })
-], $d067581fc0d59830$export$70410bc798970b36.prototype, "config", void 0);
-(0, $24c52f343453d62d$export$29e00dfd3077644b)([
-    (0, $04c21ea1ce1f6057$export$ca000e230c0caa3e)()
-], $d067581fc0d59830$export$70410bc798970b36.prototype, "language", void 0);
-(0, $24c52f343453d62d$export$29e00dfd3077644b)([
-    (0, $04c21ea1ce1f6057$export$ca000e230c0caa3e)()
-], $d067581fc0d59830$export$70410bc798970b36.prototype, "svgItemConfig", void 0);
 
 
 

@@ -1111,6 +1111,36 @@ const $eb5cfe1dd9fe4e85$export$9b06e6104ce35b16 = [
         }
     },
     {
+        id: "kamin_rl",
+        domain: "select",
+        device: "MISC",
+        unit: "\xb0C",
+        label_rect_id: "kamin_rl_label",
+        value_rect_id: "kamin_rl_value",
+        offset: 6,
+        texts: {
+            de: {
+                label: "Kamin Rücklauf",
+                desc: "Kamin Vorlauf"
+            }
+        }
+    },
+    {
+        id: "kamin_vl",
+        domain: "select",
+        device: "MISC",
+        unit: "\xb0C",
+        label_rect_id: "kamin_vl_label",
+        value_rect_id: "kamin_vl_value",
+        offset: 6,
+        texts: {
+            de: {
+                label: "Kamin Vorlauf",
+                desc: "Kamin Vorlauf"
+            }
+        }
+    },
+    {
         id: "buh_power",
         domain: "sensor",
         unit: [

@@ -615,6 +615,38 @@ export const svg_item_config: SVGItem[] = [
         }
     },
     {
+        id: "kamin_rl",
+        domain:  "select",
+        unit: "°C",
+        label_rect_id: "kamin_rl_label",
+        value_rect_id: "kamin_rl_value",
+        offset: 6,
+        optional: true,
+        parent: "Kamin",
+        texts: {
+            de: {
+                label: "Rücklauf",
+                desc: "Kamin Rücklauf"
+            }
+        }
+    },
+    {
+        id: "kamin_vl",
+        domain:  "select",
+        unit: "°C",
+        label_rect_id: "kamin_vl_label",
+        value_rect_id: "kamin_vl_value",
+        offset: 6,
+        optional: true,
+        parent: "Kamin",
+        texts: {
+            de: {
+                label: "Vorlauf",
+                desc: "Kamin Vorlauf"
+            }
+        }
+    },
+    {
         id: "buh_power",
         domain:  "sensor",
         unit: ["W", "kW"],

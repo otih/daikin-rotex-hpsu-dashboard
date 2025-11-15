@@ -13,7 +13,7 @@ export interface SVGItem {
     id: string;
     label_rect_id?: string;
     domain: string;
-    device?: "CAN" | "UART";
+    device?: "CAN" | "UART" | "MISC";
     value_rect_id?: string;
     offset?: number;
     category?: Category;
@@ -617,6 +617,7 @@ export const svg_item_config: SVGItem[] = [
     {
         id: "kamin_rl",
         domain:  "select",
+        device: "MISC"
         unit: "°C",
         label_rect_id: "kamin_rl_label",
         value_rect_id: "kamin_rl_value",
@@ -633,6 +634,7 @@ export const svg_item_config: SVGItem[] = [
     {
         id: "kamin_vl",
         domain:  "select",
+        device: "MISC"
         unit: "°C",
         label_rect_id: "kamin_vl_label",
         value_rect_id: "kamin_vl_value",

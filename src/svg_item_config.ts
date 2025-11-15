@@ -617,7 +617,7 @@ export const svg_item_config: SVGItem[] = [
     {
         id: "kamin_rl",
         domain:  "select",
-        device: "MISC"
+        device: "MISC",
         unit: "°C",
         label_rect_id: "kamin_rl_label",
         value_rect_id: "kamin_rl_value",
@@ -626,7 +626,7 @@ export const svg_item_config: SVGItem[] = [
         parent: "Kamin",
         texts: {
             de: {
-                label: "Kamin Rücklauf",
+                label: "Rücklauf",
                 desc: "Kamin Rücklauf"
             }
         }
@@ -634,7 +634,7 @@ export const svg_item_config: SVGItem[] = [
     {
         id: "kamin_vl",
         domain:  "select",
-        device: "MISC"
+        device: "MISC",
         unit: "°C",
         label_rect_id: "kamin_vl_label",
         value_rect_id: "kamin_vl_value",
@@ -651,7 +651,7 @@ export const svg_item_config: SVGItem[] = [
     {
         id: "domstic_rl",
         domain:  "select",
-        device: "MISC"
+        device: "MISC",
         unit: "°C",
         label_rect_id: "domestic_rl_label",
         value_rect_id: "domestic_rl_value",
@@ -659,7 +659,7 @@ export const svg_item_config: SVGItem[] = [
         optional: true,
         texts: {
             de: {
-                label: "Brauchwasser Rücklauf",
+                label: "Rücklauf",
                 desc: "Brauchwasser Rücklauf"
             }
         }
@@ -667,7 +667,7 @@ export const svg_item_config: SVGItem[] = [
     {
         id: "domestic_vl",
         domain:  "select",
-        device: "MISC"
+        device: "MISC",
         unit: "°C",
         label_rect_id: "domestic_vl_label",
         value_rect_id: "domestic_vl_value",
@@ -675,7 +675,7 @@ export const svg_item_config: SVGItem[] = [
         optional: true,
         texts: {
             de: {
-                label: "Brauchwasser Vorlauf",
+                label: "Vorlauf",
                 desc: "Brauchwasser Vorlauf"
             }
         }

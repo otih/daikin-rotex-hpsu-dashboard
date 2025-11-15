@@ -1121,7 +1121,7 @@ const $eb5cfe1dd9fe4e85$export$9b06e6104ce35b16 = [
         texts: {
             de: {
                 label: "Kamin Rücklauf",
-                desc: "Kamin Vorlauf"
+                desc: "Kamin Rücklauf"
             }
         }
     },
@@ -1137,6 +1137,36 @@ const $eb5cfe1dd9fe4e85$export$9b06e6104ce35b16 = [
             de: {
                 label: "Kamin Vorlauf",
                 desc: "Kamin Vorlauf"
+            }
+        }
+    },
+    {
+        id: "domestic_rl",
+        domain: "select",
+        device: "MISC",
+        unit: "\xb0C",
+        label_rect_id: "domestic_rl_label",
+        value_rect_id: "domestic_rl_value",
+        offset: 6,
+        texts: {
+            de: {
+                label: "Brauchwasser Rücklauf",
+                desc: "Brauchwasser Rücklauf"
+            }
+        }
+    },
+    {
+        id: "domestic_vl",
+        domain: "select",
+        device: "MISC",
+        unit: "\xb0C",
+        label_rect_id: "domestic_vl_label",
+        value_rect_id: "domestic_vl_value",
+        offset: 6,
+        texts: {
+            de: {
+                label: "Brauchwasser Vorlauf",
+                desc: "Brauchwasser Vorlauf"
             }
         }
     },

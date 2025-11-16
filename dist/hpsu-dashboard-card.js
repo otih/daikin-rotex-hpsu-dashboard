@@ -1120,7 +1120,7 @@ const $eb5cfe1dd9fe4e85$export$9b06e6104ce35b16 = [
         offset: 6,
         texts: {
             de: {
-                label: "Kamin Rücklauf",
+                label: "Rücklauf",
                 desc: "Kamin Rücklauf"
             }
         }
@@ -1135,7 +1135,7 @@ const $eb5cfe1dd9fe4e85$export$9b06e6104ce35b16 = [
         offset: 6,
         texts: {
             de: {
-                label: "Kamin Vorlauf",
+                label: "Vorlauf",
                 desc: "Kamin Vorlauf"
             }
         }
@@ -1150,7 +1150,7 @@ const $eb5cfe1dd9fe4e85$export$9b06e6104ce35b16 = [
         offset: 6,
         texts: {
             de: {
-                label: "Brauchwasser Rücklauf",
+                label: "Rücklauf",
                 desc: "Brauchwasser Rücklauf"
             }
         }
@@ -1165,7 +1165,7 @@ const $eb5cfe1dd9fe4e85$export$9b06e6104ce35b16 = [
         offset: 6,
         texts: {
             de: {
-                label: "Brauchwasser Vorlauf",
+                label: "Vorlauf",
                 desc: "Brauchwasser Vorlauf"
             }
         }

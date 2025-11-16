@@ -1118,6 +1118,8 @@ const $eb5cfe1dd9fe4e85$export$9b06e6104ce35b16 = [
         label_rect_id: "kamin_rl_label",
         value_rect_id: "kamin_rl_value",
         offset: 6,
+        optional: true,
+        parent: "Kamin",
         texts: {
             de: {
                 label: "Rücklauf",
@@ -1133,6 +1135,8 @@ const $eb5cfe1dd9fe4e85$export$9b06e6104ce35b16 = [
         label_rect_id: "kamin_vl_label",
         value_rect_id: "kamin_vl_value",
         offset: 6,
+        optional: true,
+        parent: "Kamin",
         texts: {
             de: {
                 label: "Vorlauf",
@@ -1148,6 +1152,8 @@ const $eb5cfe1dd9fe4e85$export$9b06e6104ce35b16 = [
         label_rect_id: "domestic_rl_label",
         value_rect_id: "domestic_rl_value",
         offset: 6,
+        optional: true,
+        parent: "Domestic",
         texts: {
             de: {
                 label: "Rücklauf",
@@ -1163,6 +1169,8 @@ const $eb5cfe1dd9fe4e85$export$9b06e6104ce35b16 = [
         label_rect_id: "domestic_vl_label",
         value_rect_id: "domestic_vl_value",
         offset: 6,
+        optional: true,
+        parent: "Domestic",
         texts: {
             de: {
                 label: "Vorlauf",

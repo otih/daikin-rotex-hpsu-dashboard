@@ -1145,6 +1145,23 @@ const $eb5cfe1dd9fe4e85$export$9b06e6104ce35b16 = [
         }
     },
     {
+        id: "kamin_spr",
+        domain: "select",
+        device: "MISC",
+        unit: "\xb0C",
+        label_rect_id: "kamin_spr_label",
+        value_rect_id: "kamin_spr_value",
+        offset: 6,
+        optional: true,
+        parent: "Kamin",
+        texts: {
+            de: {
+                label: "Spreizung",
+                desc: "Kamin Spreizung"
+            }
+        }
+    },
+    {
         id: "domestic_rl",
         domain: "select",
         device: "MISC",

@@ -385,19 +385,21 @@ export class HPSUDashboardCard extends LitElement {
 
     private updateLabels(): void {
         if (this.config) {
+            // Handle group visibility first to avoid flickering or overrides in the loop
+            const kaminParent = this.getDomElement("Kamin") as HTMLElement | null;
+            if (kaminParent) {
+                const kaminVl = this.config.entities?.['kamin_vl'];
+                const kaminRl = this.config.entities?.['kamin_rl'];
+                kaminParent.style.display = (kaminVl || kaminRl) ? "block" : "none";
+            }
+
             if (this.svg_item_config) {
                 this.svg_item_config.forEach(svg_item => {
                     const newState = svg_item.entityId ? this.hass.states[svg_item.entityId] : null;
 
                     const parentBox = svg_item.parent ? this.getDomElement(svg_item.parent) as HTMLElement | null : null;
-                    if (parentBox) {
-                        if (svg_item.parent === "Kamin") {
-                            const kaminVl = this.config.entities?.['kamin_vl'];
-                            const kaminRl = this.config.entities?.['kamin_rl'];
-                            parentBox.style.display = (kaminVl || kaminRl) ? "block" : "none";
-                        } else {
-                            parentBox.style.display = newState ? "block" : "none";
-                        }
+                    if (parentBox && svg_item.parent !== "Kamin") {
+                        parentBox.style.display = newState ? "block" : "none";
                     }
 
                     if (svg_item.valueBox) {

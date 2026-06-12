@@ -73,9 +73,20 @@ export class HPSUDashboardCard extends LitElement {
         }
     }
 
+    private getElement(id: string): Element | null {
+        if (this.elementCache.has(id)) {
+            return this.elementCache.get(id);
+        }
+        const element = this.shadowRoot?.getElementById(id) || this.shadowRoot?.querySelector(`#${id}`);
+        if (element) {
+            this.elementCache.set(id, element);
+        }
+        return element;
+    }
+
     private addClickHandlers(): void {
         const setClickHandler = (elementId: string, entityId: string | undefined) => {
-            const element = this.shadowRoot!.getElementById(elementId);
+            const element = this.getElement(elementId);
             if (element && entityId) {
                 element.addEventListener("click", () => {
                     this.handleStateClick(entityId);
@@ -245,101 +256,98 @@ export class HPSUDashboardCard extends LitElement {
         return textText;
     }
 
-    private layoutText(text: HTMLElement | SVGTextElement, box: HTMLElement, align, yOffset: number | undefined): void {
-        const xPos = parseFloat(box.getAttribute('x') ?? "");
-        const yPos = parseFloat(box.getAttribute('y') ?? "");
-        const width = parseFloat(box.getAttribute('width') ?? "");
-        const height = parseFloat(box.getAttribute('height') ?? "");
+    private layoutText(text: HTMLElement | SVGTextElement, box: HTMLElement, align: string, yOffset: number | undefined): void {
+        const xPos = parseFloat(box.getAttribute('x') ?? "0");
+        const yPos = parseFloat(box.getAttribute('y') ?? "0");
+        const width = parseFloat(box.getAttribute('width') ?? "0");
+        const height = parseFloat(box.getAttribute('height') ?? "0");
 
-        if (align == "left") {
+        if (align === "left") {
             text.setAttribute("x", xPos.toString());
             text.setAttribute("text-anchor", "start");
         } else {
             text.setAttribute("x", (xPos + width / 2).toString());
             text.setAttribute("text-anchor", "middle");
         }
-        if (yOffset != undefined) {
-            text.setAttribute("y", (yPos + height / 2 + yOffset).toString());
-        }
+
+        const finalY = yOffset !== undefined ? (yPos + height / 2 + yOffset) : (yPos + height / 2);
+        text.setAttribute("y", finalY.toString());
     }
 
     private updateLabels(): void {
-        if (this.config) {
-            if (this.svg_item_config) {
-                this.svg_item_config.forEach(svg_item => {
-                    const newState = svg_item.entityId ? this.hass.states[svg_item.entityId] : null;
+        if (!this.config || !this.svg_item_config) return;
 
-                    const parentBox = svg_item.parent ? this.shadowRoot!.getElementById(svg_item.parent) : null;
-                    if (parentBox) {
-                        parentBox.style.display = newState ? "block" : "none";
-                    }
+        this.svg_item_config.forEach(svg_item => {
+            const newState = svg_item.entityId ? this.hass.states[svg_item.entityId] : null;
 
-                    if (svg_item.valueBox) {
-                        const id = `${svg_item.valueBox.id}_text`;
-                        const valueText = this.shadowRoot!.getElementById(id);
-                        if (valueText) {
-                            const fontSize: string = svg_item.fontSize || "56";
+            const parentBox = svg_item.parent ? this.getElement(svg_item.parent) : null;
+            if (parentBox) {
+                parentBox.style.display = newState ? "block" : "none";
+            }
 
-                            if (!newState) {
-                                valueText.textContent = "N/D";
-                                valueText.setAttribute("fill", "orange");
-                                valueText.setAttribute("font-size", "30px");
-                                valueText.setAttribute("display", svg_item.optional === true ? "none" : "block");
-                            } else if (newState.state == "unknown" || newState.state == "unavailable") {
-                                valueText.textContent = "N/A";
-                                valueText.setAttribute("fill", "orange");
-                                valueText.setAttribute("font-size", "30px");
-                            } else {
-                                let entityState = newState.state || "--";
-                                valueText.setAttribute("font-size", fontSize);
+            if (svg_item.valueBox) {
+                const id = `${svg_item.valueBox.id}_text`;
+                const valueText = this.getElement(id) as SVGTextElement;
+                if (valueText) {
+                    const fontSize: string = svg_item.fontSize || "56";
 
-                                if (this.isBooleanSensor(svg_item.entityId)) {
-                                    const lang_map = text_map[this.language];
-                                    valueText.textContent = entityState === "on" ? lang_map.on : (
-                                        entityState === "off" ? lang_map.off : "<invalid>"
-                                    );
-                                    valueText.setAttribute("fill", entityState === "on" ? "yellow" : "silver");
-                                } else {
-                                    entityState = this.formatNumber(newState, svg_item.digits ?? 1);
-                                    if (entityState == "Warmwasserbereitung") {
-                                        entityState = "Warmwasser";
-                                    }
-                                    if (svg_item.texts[this.language].suffix) {
-                                        entityState = svg_item.texts[this.language].suffix + entityState;
-                                    }
+                    if (!newState) {
+                        valueText.textContent = "N/D";
+                        valueText.setAttribute("fill", "orange");
+                        valueText.setAttribute("font-size", "30px");
+                        valueText.setAttribute("display", svg_item.optional === true ? "none" : "block");
+                    } else if (newState.state == "unknown" || newState.state == "unavailable") {
+                        valueText.textContent = "N/A";
+                        valueText.setAttribute("fill", "orange");
+                        valueText.setAttribute("font-size", "30px");
+                    } else {
+                        let entityState = newState.state || "--";
+                        valueText.setAttribute("font-size", fontSize);
 
-                                    valueText.textContent = entityState;
-                                    if (svg_item.id != "fehlercode" ||
-                                        svg_item.texts[this.language].suffix == "Fehlercode: " && "Kein Fehler" ||
-                                        svg_item.texts[this.language].suffix == "Error code: " && "No Error" ||
-                                        svg_item.texts[this.language].suffix == "Codice errore: " && "Nessun errore") {
-
-                                        valueText.setAttribute("fill", "silver");
-                                    } else {
-                                        valueText.setAttribute("fill", "red");
-                                    }
-                                }
+                        if (this.isBooleanSensor(svg_item.entityId)) {
+                            const lang_map = text_map[this.language];
+                            valueText.textContent = entityState === "on" ? lang_map.on : (
+                                entityState === "off" ? lang_map.off : "<invalid>"
+                            );
+                            valueText.setAttribute("fill", entityState === "on" ? "yellow" : "silver");
+                        } else {
+                            entityState = this.formatNumber(newState, svg_item.digits ?? 1);
+                            if (entityState == "Warmwasserbereitung") {
+                                entityState = "Warmwasser";
+                            }
+                            if (svg_item.texts[this.language].suffix) {
+                                entityState = svg_item.texts[this.language].suffix + entityState;
                             }
 
-                            this.layoutText(valueText, svg_item.valueBox, svg_item.align, svg_item.offset);
-                        } else {
-                            console.warn("Label not found: " + svg_item.entityId);
+                            valueText.textContent = entityState;
+                            if (svg_item.id != "fehlercode" ||
+                                (svg_item.texts[this.language].suffix == "Fehlercode: " && "Kein Fehler") ||
+                                (svg_item.texts[this.language].suffix == "Error code: " && "No Error") ||
+                                (svg_item.texts[this.language].suffix == "Codice errore: " && "Nessun errore")) {
+
+                                valueText.setAttribute("fill", "silver");
+                            } else {
+                                valueText.setAttribute("fill", "red");
+                            }
                         }
                     }
 
-                    if (svg_item.id == "pressure_equalization") {
-                        const color = newState && newState.state == "on" ? '#00ff0080' : '#7f7f7f';
-
-                        this.shadowRoot!.getElementById("eev_arrow_left")!.setAttribute('fill', color);
-                        this.shadowRoot!.getElementById("eev_arrow_right")!.setAttribute('fill', color);
-                    } else if (svg_item.id == "buh_power") {
-                        const color = newState && this.isPositiveNumber(newState.state) ? '#d4aa00ff' : '#7f7f7f';
-                        this.shadowRoot!.getElementById("buh-control")!.setAttribute('fill', color);
-                    }
-                });
-
+                    this.layoutText(valueText, svg_item.valueBox, svg_item.align, svg_item.offset);
+                } else {
+                    console.warn("Label not found: " + svg_item.entityId);
+                }
             }
-        }
+
+            if (svg_item.id == "pressure_equalization") {
+                const color = newState && newState.state == "on" ? '#00ff0080' : '#7f7f7f';
+
+                this.getElement("eev_arrow_left")?.setAttribute('fill', color);
+                this.getElement("eev_arrow_right")?.setAttribute('fill', color);
+            } else if (svg_item.id == "buh_power") {
+                const color = newState && this.isPositiveNumber(newState.state) ? '#d4aa00ff' : '#7f7f7f';
+                this.getElement("buh-control")?.setAttribute('fill', color);
+            }
+        });
     }
 
     private updateOpacity(): void {
@@ -383,18 +391,21 @@ export class HPSUDashboardCard extends LitElement {
 
     private makeURL(filename: string): string {
         const repoName = "daikin-rotex-hpsu-dashboard";
-        const scriptElement = document.querySelector(`script[src*="/hacsfiles/${repoName}/"]`) as HTMLScriptElement;
-
-        const scriptUrl = scriptElement && scriptElement.src ? scriptElement.src : "";
-        const hacsTag = new URLSearchParams(scriptUrl.split("?")[1]).get("hacstag");
-
-        console.log(`Script url: ${scriptUrl}, tag: ${hacsTag}`);
-
-        if (hacsTag) {
-            return `/hacsfiles/${repoName}/${filename}?hacstag=${hacsTag}`;
-        } else {
-            return `/local/${repoName}/dist/${filename}?v=${Date.now()}`;
+        
+        try {
+            const scriptElement = document.querySelector(`script[src*="/hacsfiles/${repoName}/"]`) as HTMLScriptElement;
+            if (scriptElement?.src) {
+                const urlParams = new URLSearchParams(scriptElement.src.split("?")[1]);
+                const hacsTag = urlParams.get("hacstag");
+                if (hacsTag) {
+                    return `/hacsfiles/${repoName}/${filename}?hacstag=${hacsTag}`;
+                }
+            }
+        } catch (e) {
+            console.warn("Error resolving HACS URL, falling back to /local", e);
         }
+        
+        return `/local/${repoName}/dist/${filename}?v=${Date.now()}`;
     }
 
     private isPanelView(): boolean {

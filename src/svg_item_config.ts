@@ -4,11 +4,17 @@ export interface Category {
     it: string;
 };
 
+export interface TextContent {
+    label?: string;
+    suffix?: string;
+    desc: string;
+}
+
 export interface SVGItem {
     entityId?: string;
     parent?: string;
-    labelBox?: any;
-    valueBox?: any;
+    labelBox?: SVGElement;
+    valueBox?: SVGElement;
 
     id: string;
     label_rect_id?: string;
@@ -24,21 +30,9 @@ export interface SVGItem {
     suffix?: string;
     optional?: boolean;
     texts: {
-        de: {
-            label?: string;
-            suffix?: string;
-            desc: string;
-        };
-        en: {
-            label?: string;
-            suffix?: string;
-            desc: string;
-        };
-        it: {
-            label?: string;
-            suffix?: string;
-            desc: string;
-        };
+        de: TextContent;
+        en: TextContent;
+        it: TextContent;
     };
 }
 

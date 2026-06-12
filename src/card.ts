@@ -13,7 +13,6 @@ import type { HomeAssistant } from "@ha/types";
 import { html, LitElement, css, CSSResultGroup, nothing, TemplateResult } from "lit";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import { property, state } from "lit/decorators.js";
-import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import { HassEntity } from "home-assistant-js-websocket";
 
 declare global {
@@ -37,19 +36,21 @@ export class HPSUDashboardCard extends LitElement {
     @state() private svgContent: string | null = null;
 
     private static svgCache: Map<string, string> = new Map();
-  private static readonly SVG_CACHE_MAX = 20;
-  private static addToSvgCache(key: string, value: string) {
-    if (this.svgCache.size >= this.SVG_CACHE_MAX) {
-      // delete oldest entry
-      const oldestKey = this.svgCache.keys().next().value;
-      this.svgCache.delete(oldestKey);
+    private static readonly SVG_CACHE_MAX = 20;
+    private static addToSvgCache(key: string, value: string): void {
+        if (this.svgCache.size >= this.SVG_CACHE_MAX) {
+            // delete oldest entry
+            const oldestKey = this.svgCache.keys().next().value;
+            if (oldestKey !== undefined) {
+                this.svgCache.delete(oldestKey);
+            }
+        }
+        this.svgCache.set(key, value);
     }
-    this.svgCache.set(key, value);
-  }
     private svg_item_config: SVGItem[] = [];
     private domCache: Map<string, Element> = new Map();
     private clickHandlersAdded = false;
-  private addedClickHandlerElements: Element[] = [];
+    private clickHandlers: Array<{ element: Element; listener: EventListener }> = [];
 
     public setConfig(config: LovelaceCardConfig) {
         this.config = validateConfig(config);
@@ -66,11 +67,27 @@ export class HPSUDashboardCard extends LitElement {
         }
     }
 
+    protected shouldUpdate(changed: Map<PropertyKey, unknown>): boolean {
+        // Always update if anything other than `hass` changed.
+        if (changed.size > 1 || !changed.has("hass")) {
+            return true;
+        }
+        const oldHass = changed.get("hass") as HomeAssistant | undefined;
+        if (!oldHass || !this.hass) {
+            return true;
+        }
+        // Only re-render when a state of a configured entity actually changed.
+        return this.svg_item_config.some(svg_item => {
+            const id = svg_item.entityId;
+            return id !== undefined && id !== null && oldHass.states[id] !== this.hass.states[id];
+        });
+    }
+
     protected async firstUpdated(): Promise<void> {
         await this.createDashboard();
     }
 
-private async createDashboard(): Promise<void> {
+    private async createDashboard(): Promise<void> {
         const url = this.makeURL("hpsu.svg");
         // Ensure URL is relative to this origin to avoid remote injection
         if (!url.startsWith("/")) {
@@ -122,10 +139,10 @@ private async createDashboard(): Promise<void> {
         const setClickHandler = (elementId: string, entityId: string | undefined) => {
             const element = this.getDomElement(elementId);
             if (element && entityId) {
-                const clickListener = () => this.handleStateClick(entityId);
+                const clickListener: EventListener = () => this.handleStateClick(entityId);
                 element.addEventListener("click", clickListener);
                 // Store for later removal
-                this.addedClickHandlerElements.push(element);
+                this.clickHandlers.push({ element, listener: clickListener });
                 element.setAttribute("cursor", "pointer");
             }
         };
@@ -298,20 +315,39 @@ private async createDashboard(): Promise<void> {
     private sanitizeSvg(svgString: string): string {
         const parser = new DOMParser();
         const doc = parser.parseFromString(svgString, "image/svg+xml");
-        const scripts = doc.querySelectorAll("script, foreignObject, use");
-        scripts.forEach(s => s.remove());
-        
+
+        // Remove potentially dangerous elements outright.
+        doc.querySelectorAll("script, foreignObject, use, set, animate, animateTransform, animateMotion, handler, listener")
+            .forEach(s => s.remove());
+
         const allElements = doc.querySelectorAll("*");
         allElements.forEach(el => {
             const attrs = el.attributes;
             for (let i = attrs.length - 1; i >= 0; i--) {
-                const attrName = attrs[i].name.toLowerCase();
-                if (attrName.startsWith("on") || attrName.includes("javascript:")) {
-                    el.removeAttribute(attrs[i].name);
+                const attr = attrs[i];
+                const attrName = attr.name.toLowerCase();
+                const attrValue = attr.value.replace(/\s+/g, "").toLowerCase();
+
+                // Drop inline event handlers.
+                if (attrName.startsWith("on")) {
+                    el.removeAttribute(attr.name);
+                    continue;
+                }
+
+                // Drop any href/src style attributes that embed javascript: or data: payloads.
+                if ((attrName === "href" || attrName === "xlink:href" || attrName === "src") &&
+                    (attrValue.startsWith("javascript:") || attrValue.startsWith("data:"))) {
+                    el.removeAttribute(attr.name);
+                    continue;
+                }
+
+                // Drop any attribute value carrying a javascript: payload.
+                if (attrValue.includes("javascript:")) {
+                    el.removeAttribute(attr.name);
                 }
             }
         });
-        
+
         return new XMLSerializer().serializeToString(doc.documentElement);
     }
 
@@ -329,7 +365,7 @@ private async createDashboard(): Promise<void> {
         return textText;
     }
 
-    private layoutText(text: HTMLElement | SVGTextElement, box: HTMLElement, align, yOffset: number | undefined): void {
+    private layoutText(text: Element, box: HTMLElement, align: string | undefined, yOffset: number | undefined): void {
         const xPos = parseFloat(box.getAttribute('x') ?? "");
         const yPos = parseFloat(box.getAttribute('y') ?? "");
         const width = parseFloat(box.getAttribute('width') ?? "");
@@ -353,14 +389,14 @@ private async createDashboard(): Promise<void> {
                 this.svg_item_config.forEach(svg_item => {
                     const newState = svg_item.entityId ? this.hass.states[svg_item.entityId] : null;
 
-                    const parentBox = svg_item.parent ? this.shadowRoot!.getElementById(svg_item.parent) : null;
+                    const parentBox = svg_item.parent ? this.getDomElement(svg_item.parent) as HTMLElement | null : null;
                     if (parentBox) {
                         parentBox.style.display = newState ? "block" : "none";
                     }
 
                     if (svg_item.valueBox) {
                         const id = `${svg_item.valueBox.id}_text`;
-                        const valueText = this.shadowRoot!.getElementById(id);
+                        const valueText = this.getDomElement(id);
                         if (valueText) {
                             const fontSize: string = svg_item.fontSize || "56";
 
@@ -393,11 +429,10 @@ private async createDashboard(): Promise<void> {
                                     }
 
                                     valueText.textContent = entityState;
-                                    if (svg_item.id != "fehlercode" ||
-                                        svg_item.texts[this.language].suffix == "Fehlercode: " && "Kein Fehler" ||
-                                        svg_item.texts[this.language].suffix == "Error code: " && "No Error" ||
-                                        svg_item.texts[this.language].suffix == "Codice errore: " && "Nessun errore") {
-
+                                    const noErrorValues = ["Kein Fehler", "No Error", "Nessun errore"];
+                                    const isFehlercode = svg_item.id == "fehlercode";
+                                    const isNoError = noErrorValues.some(v => newState.state == v);
+                                    if (!isFehlercode || isNoError) {
                                         valueText.setAttribute("fill", "silver");
                                     } else {
                                         valueText.setAttribute("fill", "red");
@@ -413,12 +448,11 @@ private async createDashboard(): Promise<void> {
 
                     if (svg_item.id == "pressure_equalization") {
                         const color = newState && newState.state == "on" ? '#00ff0080' : '#7f7f7f';
-
-                        this.shadowRoot!.getElementById("eev_arrow_left")!.setAttribute('fill', color);
-                        this.shadowRoot!.getElementById("eev_arrow_right")!.setAttribute('fill', color);
+                        this.getDomElement("eev_arrow_left")?.setAttribute('fill', color);
+                        this.getDomElement("eev_arrow_right")?.setAttribute('fill', color);
                     } else if (svg_item.id == "buh_power") {
                         const color = newState && this.isPositiveNumber(newState.state) ? '#d4aa00ff' : '#7f7f7f';
-                        this.shadowRoot!.getElementById("buh-control")!.setAttribute('fill', color);
+                        this.getDomElement("buh-control")?.setAttribute('fill', color);
                     }
                 });
 
@@ -428,10 +462,10 @@ private async createDashboard(): Promise<void> {
 
     private updateOpacity(): void {
         if (this.config) {
-            const dhwOpenArrows = this.shadowRoot!.querySelector(`#dhw-open-arrows`) as HTMLElement;
-            const dhwClosedArrows = this.shadowRoot!.querySelector(`#dhw-closed-arrows`) as HTMLElement;
-            const bpvOpenArrows = this.shadowRoot!.querySelector(`#bpv-open-arrows`) as HTMLElement;
-            const bpvClosedArrows = this.shadowRoot!.querySelector(`#bpv-closed-arrows`) as HTMLElement;
+            const dhwOpenArrows = this.getDomElement("dhw-open-arrows") as HTMLElement | null;
+            const dhwClosedArrows = this.getDomElement("dhw-closed-arrows") as HTMLElement | null;
+            const bpvOpenArrows = this.getDomElement("bpv-open-arrows") as HTMLElement | null;
+            const bpvClosedArrows = this.getDomElement("bpv-closed-arrows") as HTMLElement | null;
 
             if (!dhwOpenArrows || !dhwClosedArrows || !bpvOpenArrows || !bpvClosedArrows) return;
 
@@ -448,9 +482,12 @@ private async createDashboard(): Promise<void> {
             bpvOpenArrows.style.opacity = (flowRate > 0 ? (bpvState / 100.0) : 0).toString();
             bpvClosedArrows.style.opacity = (flowRate > 0 ? ((100.0 - bpvState) / 100.0) : 0).toString();
 
+            const arrowOpacity = (flowRate > 0 ? 1 : 0).toString();
             for (let index = 1; index <= 8; ++index) {
-                const arrow = this.shadowRoot!.querySelector(`#Flow-Arrow-${index}`) as HTMLElement;
-                arrow.style.opacity = (flowRate > 0 ? 1 : 0).toString();
+                const arrow = this.getDomElement(`Flow-Arrow-${index}`) as HTMLElement | null;
+                if (arrow) {
+                    arrow.style.opacity = arrowOpacity;
+                }
             }
         }
     }
@@ -471,8 +508,6 @@ private async createDashboard(): Promise<void> {
 
         const scriptUrl = scriptElement && scriptElement.src ? scriptElement.src : "";
         const hacsTag = new URLSearchParams(scriptUrl.split("?")[1]).get("hacstag");
-
-        console.log(`Script url: ${scriptUrl}, tag: ${hacsTag}`);
 
         if (hacsTag) {
             return `/hacsfiles/${repoName}/${filename}?hacstag=${hacsTag}`;
@@ -512,7 +547,7 @@ private async createDashboard(): Promise<void> {
         return !!value && !isNaN(Number(value)) && Number(value) > 0;
     }
 
-    private findEntityIdById(entities, id): string | undefined {
+    private findEntityIdById(entities: SVGItem[], id: string): string | undefined {
         const entity = entities.find(entity => entity.id === id);
         return entity ? entity.entityId : undefined;
     }
@@ -525,11 +560,10 @@ private async createDashboard(): Promise<void> {
         // Clear DOM cache
         this.domCache.clear();
         // Remove click listeners
-        this.addedClickHandlerElements.forEach(el => {
-            const clone = el.cloneNode(true) as Element;
-            el.replaceWith(clone);
+        this.clickHandlers.forEach(({ element, listener }) => {
+            element.removeEventListener("click", listener);
         });
-        this.addedClickHandlerElements = [];
+        this.clickHandlers = [];
         this.clickHandlersAdded = false;
     }
 }

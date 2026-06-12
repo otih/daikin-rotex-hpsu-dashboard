@@ -994,8 +994,10 @@ export const text_map = {
 };
 
 export const validateConfig = function(config) {
+    const entities = config.entities ?? {};
     const validEntities = Object.fromEntries(
-        Object.entries(config.entities ?? {}).filter(([key]) =>
+        Object.entries(entities).filter(([key, value]) =>
+            typeof value === 'string' && 
             svg_item_config.some(entity_conf => entity_conf.id === key)
         )
     );

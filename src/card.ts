@@ -35,7 +35,9 @@ export class HPSUDashboardCard extends LitElement {
     @state() private language: string = "de";
     @state() private svgContent: string | null = null;
 
+    private static svgCache: Map<string, string> = new Map();
     private svg_item_config: SVGItem[] = [];
+    private domCache: Map<string, Element> = new Map();
     private clickHandlersAdded = false;
 
     public setConfig(config: LovelaceCardConfig) {
@@ -60,11 +62,17 @@ export class HPSUDashboardCard extends LitElement {
     private async createDashboard(): Promise<void> {
         const url = this.makeURL("hpsu.svg");
         try {
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`Failed to fetch '${url}' (${response.status})`);
+            let rawSvgString: string;
+            if (HPSUDashboardCard.svgCache.has(url)) {
+                rawSvgString = HPSUDashboardCard.svgCache.get(url)!;
+            } else {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch '${url}' (${response.status})`);
+                }
+                rawSvgString = await response.text();
+                HPSUDashboardCard.svgCache.set(url, rawSvgString);
             }
-            const rawSvgString = await response.text();
             this.svgContent = this.createSvgWithLabels(rawSvgString);
             this._state = DashboardState.Ready;
         } catch (e) {
@@ -75,7 +83,7 @@ export class HPSUDashboardCard extends LitElement {
 
     private addClickHandlers(): void {
         const setClickHandler = (elementId: string, entityId: string | undefined) => {
-            const element = this.shadowRoot!.getElementById(elementId);
+            const element = this.getDomElement(elementId);
             if (element && entityId) {
                 element.addEventListener("click", () => {
                     this.handleStateClick(entityId);
@@ -94,6 +102,17 @@ export class HPSUDashboardCard extends LitElement {
         const pressureEqualizationEntityId = this.findEntityIdById(this.svg_item_config, "pressure_equalization");
         setClickHandler("eev_arrow_left", pressureEqualizationEntityId);
         setClickHandler("eev_arrow_right", pressureEqualizationEntityId);
+    }
+
+    private getDomElement(id: string): Element | null {
+        if (this.domCache.has(id)) {
+            return this.domCache.get(id)!;
+        }
+        const element = this.shadowRoot!.getElementById(id);
+        if (element) {
+            this.domCache.set(id, element);
+        }
+        return element;
     }
 
     protected updated(changedProperties: Map<string | number | symbol, unknown>): void {
@@ -186,9 +205,12 @@ export class HPSUDashboardCard extends LitElement {
             return null;
         }
 
+        const sanitizedSvg = this.sanitizeSvg(svgString);
+
         const parser = new DOMParser();
-        const svgDoc = parser.parseFromString(svgString, "image/svg+xml");
+        const svgDoc = parser.parseFromString(sanitizedSvg, "image/svg+xml");
         const svgElement = svgDoc.documentElement;
+
 
         if (!svgElement || svgElement.tagName.toLowerCase() !== "svg") {
             console.error("The SVG was not parsed correctly.");
@@ -229,6 +251,26 @@ export class HPSUDashboardCard extends LitElement {
                 }
             }
         });
+    }
+
+    private sanitizeSvg(svgString: string): string {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(svgString, "image/svg+xml");
+        const scripts = doc.querySelectorAll("script, foreignObject, use");
+        scripts.forEach(s => s.remove());
+        
+        const allElements = doc.querySelectorAll("*");
+        allElements.forEach(el => {
+            const attrs = el.attributes;
+            for (let i = attrs.length - 1; i >= 0; i--) {
+                const attrName = attrs[i].name.toLowerCase();
+                if (attrName.startsWith("on") || attrName.includes("javascript:")) {
+                    el.removeAttribute(attrs[i].name);
+                }
+            }
+        });
+        
+        return new XMLSerializer().serializeToString(doc.documentElement);
     }
 
     private createText(box: SVGTextElement): SVGTextElement {

@@ -73,11 +73,22 @@ export class HPSUDashboardCard extends LitElement {
                 rawSvgString = await response.text();
                 HPSUDashboardCard.svgCache.set(url, rawSvgString);
             }
-            this.svgContent = this.createSvgWithLabels(rawSvgString);
-            this._state = DashboardState.Ready;
+            
+            const processedSvg = this.createSvgWithLabels(rawSvgString);
+            if (processedSvg) {
+                this.svgContent = processedSvg;
+                this._state = DashboardState.Ready;
+                
+                await this.updateComplete;
+                const container = this.shadowRoot!.getElementById("svg-container");
+                if (container) {
+                    container.innerHTML = processedSvg;
+                }
+            }
         } catch (e) {
             console.error(e);
             this.svgContent = null;
+            this._state = DashboardState.Error;
         }
     }
 
@@ -192,7 +203,7 @@ export class HPSUDashboardCard extends LitElement {
             case DashboardState.Ready:
                 return html`
                     <hpsu-dashboard-card-container>
-                        ${this.svgContent ? unsafeSVG(this.svgContent) : nothing}
+                        <div id="svg-container"></div>
                     </hpsu-dashboard-card-container>
                 `;
             default:

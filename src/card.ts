@@ -391,7 +391,13 @@ export class HPSUDashboardCard extends LitElement {
 
                     const parentBox = svg_item.parent ? this.getDomElement(svg_item.parent) as HTMLElement | null : null;
                     if (parentBox) {
-                        parentBox.style.display = newState ? "block" : "none";
+                        if (svg_item.parent === "Kamin") {
+                            const kaminVl = this.config.entities?.['kamin_vl'];
+                            const kaminRl = this.config.entities?.['kamin_rl'];
+                            parentBox.style.display = (kaminVl || kaminRl) ? "block" : "none";
+                        } else {
+                            parentBox.style.display = newState ? "block" : "none";
+                        }
                     }
 
                     if (svg_item.valueBox) {

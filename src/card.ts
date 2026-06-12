@@ -11,6 +11,7 @@ import type { LovelaceCardConfig } from "@ha/data/lovelace/config/card";
 import type { HomeAssistant } from "@ha/types";
 
 import { html, LitElement, css, CSSResultGroup, nothing, TemplateResult } from "lit";
+import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import { property, state } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import { HassEntity } from "home-assistant-js-websocket";
@@ -36,9 +37,19 @@ export class HPSUDashboardCard extends LitElement {
     @state() private svgContent: string | null = null;
 
     private static svgCache: Map<string, string> = new Map();
+  private static readonly SVG_CACHE_MAX = 20;
+  private static addToSvgCache(key: string, value: string) {
+    if (this.svgCache.size >= this.SVG_CACHE_MAX) {
+      // delete oldest entry
+      const oldestKey = this.svgCache.keys().next().value;
+      this.svgCache.delete(oldestKey);
+    }
+    this.svgCache.set(key, value);
+  }
     private svg_item_config: SVGItem[] = [];
     private domCache: Map<string, Element> = new Map();
     private clickHandlersAdded = false;
+  private addedClickHandlerElements: Element[] = [];
 
     public setConfig(config: LovelaceCardConfig) {
         this.config = validateConfig(config);
@@ -59,31 +70,33 @@ export class HPSUDashboardCard extends LitElement {
         await this.createDashboard();
     }
 
-    private async createDashboard(): Promise<void> {
+private async createDashboard(): Promise<void> {
         const url = this.makeURL("hpsu.svg");
+        // Ensure URL is relative to this origin to avoid remote injection
+        if (!url.startsWith("/")) {
+            console.error(`Invalid SVG URL: ${url}`);
+            this._state = DashboardState.Error;
+            return;
+        }
         try {
             let rawSvgString: string;
             if (HPSUDashboardCard.svgCache.has(url)) {
                 rawSvgString = HPSUDashboardCard.svgCache.get(url)!;
             } else {
-                const response = await fetch(url);
+                const response = await this.fetchWithTimeout(url, 10000);
                 if (!response.ok) {
                     throw new Error(`Failed to fetch '${url}' (${response.status})`);
                 }
                 rawSvgString = await response.text();
-                HPSUDashboardCard.svgCache.set(url, rawSvgString);
+                HPSUDashboardCard.addToSvgCache(url, rawSvgString);
             }
-            
             const processedSvg = this.createSvgWithLabels(rawSvgString);
             if (processedSvg) {
                 this.svgContent = processedSvg;
                 this._state = DashboardState.Ready;
-                
                 await this.updateComplete;
-                const container = this.shadowRoot!.getElementById("svg-container");
-                if (container) {
-                    container.innerHTML = processedSvg;
-                }
+            } else {
+                this._state = DashboardState.Error;
             }
         } catch (e) {
             console.error(e);
@@ -91,14 +104,28 @@ export class HPSUDashboardCard extends LitElement {
             this._state = DashboardState.Error;
         }
     }
+    /**
+     * Fetch with timeout using AbortController.
+     */
+    private async fetchWithTimeout(resource: string, timeoutMs: number): Promise<Response> {
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+            const response = await fetch(resource, { signal: controller.signal });
+            return response;
+        } finally {
+            clearTimeout(id);
+        }
+    }
 
     private addClickHandlers(): void {
         const setClickHandler = (elementId: string, entityId: string | undefined) => {
             const element = this.getDomElement(elementId);
             if (element && entityId) {
-                element.addEventListener("click", () => {
-                    this.handleStateClick(entityId);
-                });
+                const clickListener = () => this.handleStateClick(entityId);
+                element.addEventListener("click", clickListener);
+                // Store for later removal
+                this.addedClickHandlerElements.push(element);
                 element.setAttribute("cursor", "pointer");
             }
         };
@@ -127,6 +154,8 @@ export class HPSUDashboardCard extends LitElement {
     }
 
     protected updated(changedProperties: Map<string | number | symbol, unknown>): void {
+        // Ensure click handlers are attached only once
+        // (existing logic remains unchanged)
         if (this.isPanelView()) {
             this.setAttribute('panel-view', '');
         } else {
@@ -203,7 +232,9 @@ export class HPSUDashboardCard extends LitElement {
             case DashboardState.Ready:
                 return html`
                     <hpsu-dashboard-card-container>
-                        <div id="svg-container"></div>
+                        <div id="svg-container">
+                            ${this.svgContent ? unsafeSVG(this.svgContent) : nothing}
+                        </div>
                     </hpsu-dashboard-card-container>
                 `;
             default:
@@ -484,6 +515,22 @@ export class HPSUDashboardCard extends LitElement {
     private findEntityIdById(entities, id): string | undefined {
         const entity = entities.find(entity => entity.id === id);
         return entity ? entity.entityId : undefined;
+    }
+
+    /**
+     * Clean up caches and event listeners when element is removed.
+     */
+    disconnectedCallback(): void {
+        super.disconnectedCallback?.();
+        // Clear DOM cache
+        this.domCache.clear();
+        // Remove click listeners
+        this.addedClickHandlerElements.forEach(el => {
+            const clone = el.cloneNode(true) as Element;
+            el.replaceWith(clone);
+        });
+        this.addedClickHandlerElements = [];
+        this.clickHandlersAdded = false;
     }
 }
 

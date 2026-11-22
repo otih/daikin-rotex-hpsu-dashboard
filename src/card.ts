@@ -4,6 +4,8 @@ import {
     languages,
     text_map,
     validateConfig,
+    configRowOrder,
+    layoutFile,
 } from "./svg_item_config";
 import { HpsuDashboardCardEditor } from "./editor";
 
@@ -12,7 +14,7 @@ import type { HomeAssistant } from "@ha/types";
 
 import { html, LitElement, css, CSSResultGroup, nothing, TemplateResult } from "lit";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
-import { property, state } from "lit/decorators.js";
+import { property, query, state } from "lit/decorators.js";
 import { HassEntity } from "home-assistant-js-websocket";
 
 declare global {
@@ -26,6 +28,8 @@ export enum DashboardState {
     Ready = 'ready',
     Error = 'error',
 }
+
+type NodeProcessor = (child: Element, parent: SVGGElement | SVGSVGElement) => boolean;
 
 export class HPSUDashboardCard extends LitElement {
     @property({ attribute: false }) public hass!: HomeAssistant;
@@ -51,18 +55,42 @@ export class HPSUDashboardCard extends LitElement {
     private domCache: Map<string, Element> = new Map();
     private clickHandlersAdded = false;
     private clickHandlers: Array<{ element: Element; listener: EventListener }> = [];
+    private loadedLayoutFile: string | null = null;
+    private loadedStyleSignature: string | null = null;
+    // Optional box/text styling provided by the SVG layout itself (data-* attributes on the <svg> root).
+    private layoutStyle: { radius?: string; fill?: string; stroke?: string; strokeWidth?: string; text?: string; label?: string; ownStates?: boolean } = {};
+
+    @query('ha-card')
+    private haCardElement!: HTMLElement;
 
     public setConfig(config: LovelaceCardConfig) {
         this.config = validateConfig(config);
         this.svg_item_config = svg_item_config.map(svg_item => ({
             ...svg_item,
-            entityId: this.config.entities?.[svg_item.id] || null
+            values: svg_item.values.map(value => ({
+                ...value,
+                entityId: this.config.entities?.[value.id] || null
+            }))
         }));
+
+        if (this.hasUpdated && this._state === DashboardState.Ready) {
+            this.updateAnimations();
+        }
+
+        // Layout switched while the card is already shown (e.g. in the card editor): reload the SVG.
+        if (this.hasUpdated && this.loadedLayoutFile !== null && (layoutFile(this.config.layout) !== this.loadedLayoutFile || this.styleSignature() !== this.loadedStyleSignature)) {
+            this.clickHandlersAdded = false;
+            this._state = DashboardState.Loading;
+            this.svgContent = null;
+            void this.updateComplete.then(() => this.createDashboard());
+        }
     }
 
     protected willUpdate(changed: Map<PropertyKey, unknown>): void {
         if (changed.has("hass") && this.hass?.language) {
-            const lang = this.hass.language.split("-")[0];
+            // Use config language if set, otherwise use Home Assistant language
+            const configLang = this.config?.language;
+            const lang = configLang || this.hass.language.split("-")[0];
             this.language = languages.includes(lang) ? lang : "de";
         }
     }
@@ -78,8 +106,10 @@ export class HPSUDashboardCard extends LitElement {
         }
         // Only re-render when a state of a configured entity actually changed.
         return this.svg_item_config.some(svg_item => {
-            const id = svg_item.entityId;
-            return id !== undefined && id !== null && oldHass.states[id] !== this.hass.states[id];
+            return svg_item.values.some(value_item => {
+                const id = value_item.entityId;
+                return id !== undefined && id !== null && oldHass.states[id] !== this.hass.states[id];
+            });
         });
     }
 
@@ -88,10 +118,16 @@ export class HPSUDashboardCard extends LitElement {
     }
 
     private async createDashboard(): Promise<void> {
-        const url = this.makeURL("hpsu.svg");
-        // Ensure URL is relative to this origin to avoid remote injection
-        if (!url.startsWith("/")) {
-            console.error(`Invalid SVG URL: ${url}`);
+        const file = layoutFile(this.config?.layout);
+        const url = this.makeURL(file);
+        // Ensure URL points to this origin to avoid remote injection
+        try {
+            const resolved = new URL(url, document.baseURI);
+            if (resolved.origin !== new URL(document.baseURI).origin) {
+                throw new Error(`Invalid SVG URL (cross-origin): ${url}`);
+            }
+        } catch (e) {
+            console.error(e);
             this._state = DashboardState.Error;
             return;
         }
@@ -107,14 +143,10 @@ export class HPSUDashboardCard extends LitElement {
                 rawSvgString = await response.text();
                 HPSUDashboardCard.addToSvgCache(url, rawSvgString);
             }
-            const processedSvg = this.createSvgWithLabels(rawSvgString);
-            if (processedSvg) {
-                this.svgContent = processedSvg;
-                this._state = DashboardState.Ready;
-                await this.updateComplete;
-            } else {
-                this._state = DashboardState.Error;
-            }
+            this.loadedLayoutFile = file;
+            this.loadedStyleSignature = this.styleSignature();
+            this.svgContent = this.createSvgWithLabels(rawSvgString);
+            this._state = DashboardState.Ready;
         } catch (e) {
             console.error(e);
             this.svgContent = null;
@@ -148,15 +180,19 @@ export class HPSUDashboardCard extends LitElement {
         };
 
         this.svg_item_config.forEach(svg_item => {
-            if (svg_item.valueBox && svg_item.entityId) {
-                const id = `${svg_item.valueBox.id}_text`;
-                setClickHandler(id, svg_item.entityId);
-            }
+            svg_item.values.forEach(value_item => {
+                if (value_item.valueBox && value_item.entityId) {
+                    const id = `${value_item.valueBox.id}_text`;
+                    setClickHandler(id, value_item.entityId);
+                }
+            });
         });
 
         const pressureEqualizationEntityId = this.findEntityIdById(this.svg_item_config, "pressure_equalization");
-        setClickHandler("eev_arrow_left", pressureEqualizationEntityId);
-        setClickHandler("eev_arrow_right", pressureEqualizationEntityId);
+        // Layouts without status texts show on/off on the symbol itself; clicking it opens the details.
+        setClickHandler("compressor-symbol", this.findEntityIdById(this.svg_item_config, "kompressor_an_aus"));
+        setClickHandler("pump-symbol", this.findEntityIdById(this.svg_item_config, "umwaelzpumpe_an_aus"));
+        setClickHandler("eev-symbol", pressureEqualizationEntityId);
     }
 
     private getDomElement(id: string): Element | null {
@@ -182,6 +218,8 @@ export class HPSUDashboardCard extends LitElement {
         if (this._state == DashboardState.Ready) {
             this.updateLabels();
             this.updateOpacity();
+            this.updateAnimations();
+            this.updateDynamicStyle();
 
             if (!this.clickHandlersAdded) {
                 this.addClickHandlers();
@@ -243,19 +281,17 @@ export class HPSUDashboardCard extends LitElement {
         `;
 
     protected render(): TemplateResult {
+        return this.renderContent();
+    }
+
+    private renderContent(): TemplateResult {
         switch (this._state) {
             case DashboardState.Error:
-                return html`<ha-card>Fehler beim Laden des HPSU Dashboards.</ha-card>`;
+                return html`Fehler beim Laden des HPSU Dashboards.`;
             case DashboardState.Ready:
-                return html`
-                    <hpsu-dashboard-card-container>
-                        <div id="svg-container">
-                            ${this.svgContent ? unsafeSVG(this.svgContent) : nothing}
-                        </div>
-                    </hpsu-dashboard-card-container>
-                `;
+                return html`<ha-card>${this.svgContent ? unsafeSVG(this.svgContent) : nothing}</ha-card>`;
             default:
-                return html``;
+                return html`<ha-card></ha-card>`;
         }
     }
 
@@ -276,6 +312,19 @@ export class HPSUDashboardCard extends LitElement {
             return null;
         }
 
+        this.layoutStyle = {
+            radius: svgElement.getAttribute("data-box-radius") ?? undefined,
+            fill: svgElement.getAttribute("data-box-fill") ?? undefined,
+            stroke: svgElement.getAttribute("data-box-stroke") ?? undefined,
+            strokeWidth: svgElement.getAttribute("data-box-stroke-width") ?? undefined,
+            text: svgElement.getAttribute("data-text-color") ?? undefined,
+            label: svgElement.getAttribute("data-label-color") ?? undefined,
+            // the SVG styles the states itself (CSS on [data-state]); the card only sets the state
+            ownStates: svgElement.hasAttribute("data-own-state-style"),
+        };
+
+        this.applyStyleOverrides(svgElement);
+
         svgElement.setAttribute("preserveAspectRatio", "xMidYMid meet");
         svgElement.style.display = "block";
 
@@ -283,33 +332,288 @@ export class HPSUDashboardCard extends LitElement {
         return new XMLSerializer().serializeToString(svgElement);
     }
 
+    // Style overrides from the card config (editor tab "appearance"). They only replace single values of the
+    // layout; the defaults and the look stay in the SVG.
+    private styleSignature(): string {
+        const c = this.config ?? ({} as LovelaceCardConfig);
+        return JSON.stringify([c.background, c.box, c.text]);
+    }
+
+    private parseColor(value: string | undefined): number[] | undefined {
+        if (!value) return undefined;
+        const hex = value.trim().match(/^#([0-9a-f]{3,8})$/i);
+        if (hex) {
+            let h = hex[1];
+            if (h.length === 3 || h.length === 4) h = h.split("").map(x => x + x).join("");
+            const n = parseInt(h.slice(0, 6), 16);
+            return [(n >> 16) & 255, (n >> 8) & 255, n & 255, h.length === 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1];
+        }
+        const m = value.match(/rgba?\(([^)]+)\)/);
+        if (m) {
+            const p = m[1].split(",").map(x => parseFloat(x));
+            return [p[0], p[1], p[2], p[3] ?? 1];
+        }
+        return undefined;
+    }
+
+    // colour from the config (or the layout's own colour if only the opacity is set) with the opacity applied
+    private composeColor(color: unknown, opacity: number | undefined, base: string | undefined): string | undefined {
+        if (color === undefined && opacity === undefined) return undefined;
+        const own = Array.isArray(color) && color.length >= 3 ? color.map(Number) : undefined;
+        const fallback = this.parseColor(base);
+        const rgb = own ?? fallback?.slice(0, 3);
+        if (!rgb) return undefined;
+        const alpha = opacity !== undefined ? Math.min(100, Math.max(0, Number(opacity))) / 100 : (own ? 1 : (fallback?.[3] ?? 1));
+        return alpha >= 1 ? `rgb(${rgb[0]},${rgb[1]},${rgb[2]})` : `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha})`;
+    }
+
+    private applyStyleOverrides(svgElement: Element): void {
+        const cfg = this.config ?? ({} as LovelaceCardConfig);
+
+        if (cfg.box) {
+            const fill = this.composeColor(cfg.box.fill, cfg.box.fill_opacity, this.layoutStyle.fill);
+            const border = this.composeColor(cfg.box.border, cfg.box.border_opacity, this.layoutStyle.stroke);
+            if (fill) this.layoutStyle.fill = fill;
+            if (border) this.layoutStyle.stroke = border;
+        }
+        if (cfg.text) {
+            const value = this.composeColor(cfg.text.value_color, undefined, undefined);
+            const label = this.composeColor(cfg.text.label_color, undefined, undefined);
+            if (value) this.layoutStyle.text = value;
+            if (label) this.layoutStyle.label = label;
+        }
+
+        // background: the SVG draws it from --bg-color / --bg-opacity (with its own defaults)
+        const style = (svgElement as SVGElement).style;
+        if (cfg.background?.show === false) {
+            svgElement.setAttribute("data-bg", "off");
+        } else if (cfg.background) {
+            const color = this.composeColor(cfg.background.color, undefined, undefined);
+            if (color) style.setProperty("--bg-color", color);
+            if (cfg.background.opacity !== undefined) {
+                style.setProperty("--bg-opacity", String(Math.min(100, Math.max(0, Number(cfg.background.opacity))) / 100));
+            }
+        }
+    }
+
+    private strToFloat(str: string): number {
+        if (str === "" || str === undefined || str === null || str.trim() === "") {
+            return 0;
+        }
+        return parseFloat(str);
+    }
+
     private createStateLabels(svgDoc: Document): void {
+        const haCard = this.haCardElement;
+        if (!haCard) {
+            return;
+        }
+
+        let style = getComputedStyle(haCard);
+        let rootStyle = getComputedStyle(document.body); // Oder document.documentElement
+
+        let backgroundColor = style.getPropertyValue('--ha-card-background').trim();
+
+        let borderColor = style.getPropertyValue('--ha-card-border-color').trim();
+        if (borderColor === "") {
+            borderColor = style.getPropertyValue('--divider-color').trim();
+        }
+        if (borderColor === "") {
+            borderColor = '#000000ff';
+        }
+
+        let borderWidth = style.getPropertyValue('--ha-card-border-width').trim();
+        let globalWidth = rootStyle.getPropertyValue('--ha-card-border-width').trim();
+        console.log("global-width: " + globalWidth + ", " + this.strToFloat(borderWidth) + "|" + borderWidth);
+        if (this.strToFloat(borderWidth) === 0) {
+            if (backgroundColor === "") {
+                borderWidth = "5px";
+            } else {
+                borderWidth = "0px";
+            }
+        }
+        if (backgroundColor === "") {
+            backgroundColor = "none";
+        }
+
+        //const borderWidth = "5px";
+        let borderRadius = style.getPropertyValue('--ha-card-border-radius').trim();
+        /*if (parseFloat(borderRadius) === 0) {
+            let rootStyle = getComputedStyle(document.body); // Oder document.documentElement
+            let globalRadius = rootStyle.getPropertyValue('--ha-card-border-radius').trim();
+            borderRadius = "10px"; //globalRadius;
+        }*/
+
+        const secondaryTextColor = this.layoutStyle.label ?? (style.getPropertyValue('--secondary-text-color').trim() || '#808080');
+
+        console.log("bg-color:" + backgroundColor + "|radius: " + borderRadius + "|border-color: " + borderColor + "|border-width:" + borderWidth);
+
+        // A layout may bring its own box style (rounded corners, colours); it wins over the HA theme.
+        if (this.layoutStyle.radius !== undefined) borderRadius = this.layoutStyle.radius;
+        if (this.layoutStyle.fill !== undefined) backgroundColor = this.layoutStyle.fill;
+        if (this.layoutStyle.stroke !== undefined) borderColor = this.layoutStyle.stroke;
+        if (this.layoutStyle.strokeWidth !== undefined) borderWidth = this.layoutStyle.strokeWidth;
+
+        let currentBackgroundColor = backgroundColor;
+
         this.svg_item_config.forEach(svg_item => {
-            svg_item.valueBox = svgDoc.getElementById(svg_item.value_rect_id ?? "");
-            if (svg_item.valueBox) {
-                const group = svg_item.valueBox.parentNode;
-                if (group) {
-                    svg_item.entityId = this.config.entities?.[svg_item.id] ?? null;
+            const group = svgDoc.getElementById(svg_item.group_id ?? "") as SVGGElement | null;
 
-                    const valueText = this.createText(svg_item.valueBox);
-                    svg_item.labelBox = svg_item.label_rect_id ? svgDoc.getElementById(svg_item.label_rect_id) : null;
+            svg_item.labelBox = svg_item.label_rect_id ? svgDoc.getElementById(svg_item.label_rect_id) : null;
 
-                    if (svg_item.labelBox) {
-                        const labelText = this.createText(svg_item.labelBox);
-                        group.appendChild(labelText);
+            // Create label text
 
-                        labelText.setAttribute("font-size", "35");
-                        labelText.setAttribute("fill", "rgb(191, 191, 191)");
+            if (group && svg_item.labelBox) {
+                svg_item.labelBox.setAttribute("fill", backgroundColor);
+                svg_item.labelBox.setAttribute("stroke", borderColor);
+                svg_item.labelBox.setAttribute("stroke-width", borderWidth);
+                svg_item.labelBox.setAttribute("rx", borderRadius);
+                svg_item.labelBox.setAttribute("ry", borderRadius);
 
-                        labelText.textContent = svg_item.texts[this.language] ? svg_item.texts[this.language].label : svg_item.id + "<missing>";
-                        this.layoutText(labelText, svg_item.labelBox, "middle", 3);
+                const labelText = this.createText(svg_item.labelBox);
+                group.appendChild(labelText);
+
+                labelText.setAttribute("font-size", "35");
+                labelText.setAttribute("fill", secondaryTextColor);
+
+                labelText.textContent = svg_item.texts?.[this.language] ? svg_item.texts[this.language].label : svg_item.group_id + "<missing>";
+                this.layoutText(labelText, svg_item.labelBox, "middle", 3);
+            }
+
+            // Create parent rect with round corners
+
+            var roundCorners = this.strToFloat(borderRadius) > 0;
+
+            if (svg_item.visual_container && group && roundCorners) {
+                const bbox = this.getBBox(group);
+
+                const parent_box = this.createRect(svg_item.group_id);
+                parent_box.setAttribute("x", bbox.x.toString());
+                parent_box.setAttribute("y", bbox.y.toString());
+                parent_box.setAttribute("width", bbox.width.toString());
+                parent_box.setAttribute("height", bbox.height.toString());
+                parent_box.setAttribute("fill", backgroundColor);
+                parent_box.setAttribute("stroke", borderColor);
+                parent_box.setAttribute("stroke-width", borderWidth);
+                parent_box.setAttribute("rx", borderRadius);
+                parent_box.setAttribute("ry", borderRadius);
+                group.insertBefore(parent_box, group.firstChild);
+
+                currentBackgroundColor = "none";
+            }
+
+            const hadLabel = !!svg_item.labelBox;
+            if (roundCorners && svg_item.labelBox) {
+                this.removeSVGElement(svg_item.labelBox);
+            }
+            // With a layout-owned rounded container the single frame is drawn by the container;
+            // inner value boxes get no stroke of their own, only a thin divider line on top.
+            const ownFrame = this.layoutStyle.radius !== undefined && currentBackgroundColor === "none";
+
+            // Create value texts
+
+            svg_item.values.forEach(value_item => {
+                value_item.valueBox = svgDoc.getElementById(value_item.value_rect_id ?? "");
+                if (value_item.valueBox) {
+                    let currentBorderColor = borderColor;
+                    value_item.valueBox.setAttribute("fill", currentBackgroundColor);
+                    value_item.valueBox.setAttribute("stroke", ownFrame ? "none" : currentBorderColor);
+                    value_item.valueBox.setAttribute("stroke-width", borderWidth);
+                    //svg_item.valueBox.setAttribute("rx", borderRadius);
+                    //svg_item.valueBox.setAttribute("ry", borderRadius);
+
+                    if (group && ownFrame && (hadLabel || svg_item.reorderable || svg_item.values.indexOf(value_item) > 0)) {
+                        const box = value_item.valueBox;
+                        const bx = this.strToFloat(box.getAttribute("x") ?? "");
+                        const by = this.strToFloat(box.getAttribute("y") ?? "");
+                        const bw = this.strToFloat(box.getAttribute("width") ?? "");
+                        const divider = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                        divider.setAttribute("id", `${value_item.value_rect_id}_divider`);
+                        divider.setAttribute("x1", bx.toString());
+                        divider.setAttribute("x2", (bx + bw).toString());
+                        divider.setAttribute("y1", by.toString());
+                        divider.setAttribute("y2", by.toString());
+                        divider.setAttribute("stroke", borderColor);
+                        divider.setAttribute("stroke-width", "1.5");
+                        divider.setAttribute("stroke-opacity", "0.6");
+                        const boxTransform = box.getAttribute("transform");
+                        if (boxTransform) {
+                            divider.setAttribute("transform", boxTransform);
+                        }
+                        group.appendChild(divider);
                     }
-                    group.appendChild(valueText);
-                } else {
-                    console.warn(`Rect with ID ${svg_item.value_rect_id} parent not found.`);
+
+                    if (group) {
+                        value_item.entityId = this.config.entities?.[value_item.id] ?? null;
+                        const valueText = this.createText(value_item.valueBox);
+                        group.appendChild(valueText);
+                    } else {
+                        console.warn(`Rect with ID ${value_item.value_rect_id} parent not found.`);
+                    }
+                }
+            });
+        });
+    }
+
+    private removeSVGElement(childElement: SVGElement): void {
+        const parentElement: Element = childElement.parentElement!;
+
+        if (parentElement) {
+            parentElement.removeChild(childElement);
+        }
+    }
+
+    private getBBox(group: SVGGElement): DOMRect {
+        const clonedGroup = group.cloneNode(true) as SVGGElement;
+
+        const cleanupCallback: NodeProcessor = (child, parent) => {
+            const tagName = child.tagName.toLowerCase();
+            if (tagName === 'path') {
+                parent.removeChild(child);
+                return true;
+            }
+
+            if (tagName === 'rect') {
+                child.setAttribute('fill', 'rgba(0, 0, 0, 0.01)');
+            }
+
+            return false;
+        };
+
+        this.processNode(clonedGroup, cleanupCallback);
+
+        const tempSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        tempSvg.style.cssText = `
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            width: 0;
+            height: 0;
+            overflow: hidden;
+        `;
+
+        tempSvg.appendChild(clonedGroup);
+        this.shadowRoot!.appendChild(tempSvg);
+
+        try {
+            return clonedGroup.getBBox();
+        } finally {
+            this.shadowRoot!.removeChild(tempSvg);
+        }
+    }
+
+    private processNode(node: SVGGElement | SVGSVGElement, callback: NodeProcessor): void {
+        for (let i = node.children.length - 1; i >= 0; i--) {
+            const child = node.children[i];
+            if (child.tagName.toLowerCase() === 'g') {
+                this.processNode(child as SVGGElement, callback);
+            } else {
+                const wasRemoved = callback(child, node);
+                if (wasRemoved) {
+                    continue;
                 }
             }
-        });
+        }
     }
 
     private sanitizeSvg(svgString: string): string {
@@ -365,7 +669,13 @@ export class HPSUDashboardCard extends LitElement {
         return textText;
     }
 
-    private layoutText(text: Element, box: HTMLElement, align: string | undefined, yOffset: number | undefined): void {
+    private createRect(group_id: string): SVGRectElement {
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.id = `${group_id}_rect`;
+        return rect;
+    }
+
+    private layoutText(text: HTMLElement | SVGTextElement, box: HTMLElement, align, yOffset: number | undefined): void {
         const xPos = parseFloat(box.getAttribute('x') ?? "");
         const yPos = parseFloat(box.getAttribute('y') ?? "");
         const width = parseFloat(box.getAttribute('width') ?? "");
@@ -384,9 +694,15 @@ export class HPSUDashboardCard extends LitElement {
     }
 
     private updateLabels(): void {
+        const haCard = this.haCardElement;
+        if (!haCard) {
+            return;
+        }
+
         if (this.config) {
             // Handle group visibility first to avoid flickering or overrides in the loop
-            const kaminParent = this.getDomElement("Kamin") as HTMLElement | null;
+            // (SVG group id is lowercase "kamin")
+            const kaminParent = this.getDomElement("kamin") as HTMLElement | null;
             if (kaminParent) {
                 const kaminVl = this.config.entities?.['kamin_vl'];
                 const kaminRl = this.config.entities?.['kamin_rl'];
@@ -394,78 +710,194 @@ export class HPSUDashboardCard extends LitElement {
             }
 
             if (this.svg_item_config) {
+                let style = getComputedStyle(haCard);
+
+                const primaryTextColor = this.layoutStyle.text ?? (style.getPropertyValue('--primary-text-color').trim() || 'black');
+
                 this.svg_item_config.forEach(svg_item => {
-                    const newState = svg_item.entityId ? this.hass.states[svg_item.entityId] : null;
+                    svg_item.values.forEach(value_item => {
+                        svg_item.values.forEach(value_item => {
+                            const newState = value_item.entityId ? this.hass.states[value_item.entityId] : null;
 
-                    const parentBox = svg_item.parent ? this.getDomElement(svg_item.parent) as HTMLElement | null : null;
-                    if (parentBox && svg_item.parent !== "Kamin") {
-                        parentBox.style.display = newState ? "block" : "none";
-                    }
+                            const parentBox = svg_item.parent ? this.getDomElement(svg_item.parent) as HTMLElement | null : null;
+                            if (parentBox && svg_item.parent !== "kamin") {
+                                parentBox.style.display = newState ? "block" : "none";
+                            }
 
-                    if (svg_item.valueBox) {
-                        const id = `${svg_item.valueBox.id}_text`;
-                        const valueText = this.getDomElement(id);
-                        if (valueText) {
-                            const fontSize: string = svg_item.fontSize || "56";
-
-                            if (!newState) {
-                                valueText.textContent = "N/D";
-                                valueText.setAttribute("fill", "orange");
-                                valueText.setAttribute("font-size", "30px");
-                                valueText.setAttribute("display", svg_item.optional === true ? "none" : "block");
-                            } else if (newState.state == "unknown" || newState.state == "unavailable") {
-                                valueText.textContent = "N/A";
-                                valueText.setAttribute("fill", "orange");
-                                valueText.setAttribute("font-size", "30px");
-                            } else {
-                                let entityState = newState.state || "--";
-                                valueText.setAttribute("font-size", fontSize);
-
-                                if (this.isBooleanSensor(svg_item.entityId)) {
-                                    const lang_map = text_map[this.language];
-                                    valueText.textContent = entityState === "on" ? lang_map.on : (
-                                        entityState === "off" ? lang_map.off : "<invalid>"
-                                    );
-                                    valueText.setAttribute("fill", entityState === "on" ? "yellow" : "silver");
-                                } else {
-                                    entityState = this.formatNumber(newState, svg_item.digits ?? 1);
-                                    if (entityState == "Warmwasserbereitung") {
-                                        entityState = "Warmwasser";
-                                    }
-                                    if (svg_item.texts[this.language].suffix) {
-                                        entityState = svg_item.texts[this.language].suffix + entityState;
-                                    }
-
-                                    valueText.textContent = entityState;
-                                    const noErrorValues = ["Kein Fehler", "No Error", "Nessun errore"];
-                                    const isFehlercode = svg_item.id == "fehlercode";
-                                    const isNoError = noErrorValues.some(v => newState.state == v);
-                                    if (!isFehlercode || isNoError) {
-                                        valueText.setAttribute("fill", "silver");
-                                    } else {
-                                        valueText.setAttribute("fill", "red");
-                                    }
+                            // optional value without entity: do not leave an empty box behind.
+                            // value_item.valueBox belongs to the parsed SVG document, so look up the live element.
+                            const liveBox = value_item.optional === true && value_item.value_rect_id
+                                ? this.shadowRoot!.getElementById(value_item.value_rect_id)
+                                : null;
+                            if (liveBox) {
+                                liveBox.style.display = newState ? "" : "none";
+                                const liveDivider = this.shadowRoot!.getElementById(`${value_item.value_rect_id}_divider`);
+                                if (liveDivider) {
+                                    liveDivider.style.display = newState ? "" : "none";
                                 }
                             }
 
-                            this.layoutText(valueText, svg_item.valueBox, svg_item.align, svg_item.offset);
-                        } else {
-                            console.warn("Label not found: " + svg_item.entityId);
-                        }
-                    }
+                            const id = `${value_item.value_rect_id}_text`;
+                            const valueText = this.shadowRoot!.querySelector(`#${id}`) as HTMLElement;
 
-                    if (svg_item.id == "pressure_equalization") {
-                        const color = newState && newState.state == "on" ? '#00ff0080' : '#7f7f7f';
-                        this.getDomElement("eev_arrow_left")?.setAttribute('fill', color);
-                        this.getDomElement("eev_arrow_right")?.setAttribute('fill', color);
-                    } else if (svg_item.id == "buh_power") {
-                        const color = newState && this.isPositiveNumber(newState.state) ? '#d4aa00ff' : '#7f7f7f';
-                        this.getDomElement("buh-control")?.setAttribute('fill', color);
+                            if (value_item.id == "pressure_equalization") {
+                                const color = newState && newState.state == "on" ? '#00ff0080' : '#7f7f7f';
+                                this.getDomElement("eev_arrow_left")?.setAttribute('fill', color);
+                                this.getDomElement("eev_arrow_right")?.setAttribute('fill', color);
+                            } else if (value_item.id == "buh_power") {
+                                const color = newState && this.isPositiveNumber(newState.state) ? '#d4aa00ff' : '#7f7f7f';
+                                this.getDomElement("buh-control")?.setAttribute('fill', color);
+                            }
+
+                            if (valueText) {
+                                const fontSize: string = svg_item.fontSize || "56";
+
+                                if (!newState) {
+                                    valueText.textContent = "N/D";
+                                    this.textState(valueText, "na", { "fill": "orange", "font-size": "30px" });
+                                    valueText.setAttribute("display", value_item.optional === true ? "none" : "block");
+                                } else if (newState.state == "unknown" || newState.state == "unavailable") {
+                                    valueText.textContent = "N/A";
+                                    this.textState(valueText, "unavailable", { "fill": "orange", "font-size": "30px" });
+                                } else {
+                                    let entityState = newState.state || "--";
+                                    valueText.setAttribute("font-size", fontSize);
+
+                                    if (this.isBooleanSensor(value_item.entityId ?? undefined)) {
+                                        const lang_map = text_map[this.language];
+                                        valueText.textContent = entityState === "on" ? lang_map.on : (
+                                            entityState === "off" ? lang_map.off : "<invalid>"
+                                        );
+                                        this.textState(valueText, entityState === "on" ? "on" : "off", { "fill": entityState === "on" ? "yellow" : "silver" });
+                                    } else {
+                                        entityState = this.formatNumber(newState, svg_item.digits ?? 1);
+                                        if (entityState == "Warmwasserbereitung") {
+                                            entityState = "Warmwasser";
+                                        }
+                                        if (value_item.texts[this.language].suffix) {
+                                            entityState = value_item.texts[this.language].suffix + entityState;
+                                        }
+
+                                        valueText.textContent = entityState;
+                                        if (value_item.id != "fehlercode" ||
+                                            value_item.texts[this.language].suffix == "Fehlercode: " && "Kein Fehler" ||
+                                            value_item.texts[this.language].suffix == "Error code: " && "No Error" ||
+                                            value_item.texts[this.language].suffix == "Codice errore: " && "Nessun errore") {
+
+                                            this.textState(valueText, "normal", { "fill": primaryTextColor });
+                                        } else {
+                                            this.textState(valueText, "error", { "fill": "red" });
+                                        }
+                                    }
+                                }
+
+                                this.layoutText(valueText, value_item.valueBox, value_item.valueBox.getAttribute("data-align") ?? svg_item.align, svg_item.offset);
+                            } else if (value_item.value_rect_id) {
+                                console.warn("Value text not found: " + value_item.entityId);
+                            }
+                        });
+                    });
+                    if (svg_item.reorderable) {
+                        this.layoutRows(svg_item);
                     }
                 });
 
             }
         }
+    }
+
+    // Rows of a reorderable box (info box): configured order, only the shown rows, packed from the top at their normal height.
+    // The container shrinks to the shown rows.
+    private layoutRows(svg_item: SVGItem): void {
+        const root = this.shadowRoot!;
+        const slots = svg_item.values.filter(v => v.valueBox).map(v => ({
+            y: parseFloat(v.valueBox.getAttribute("y")),
+            h: parseFloat(v.valueBox.getAttribute("height")),
+        })).sort((a, b) => a.y - b.y);
+        const byId = new Map(svg_item.values.map(v => [v.id, v]));
+        let k = 0;
+        for (const id of configRowOrder(this.config)) {
+            const v = byId.get(id);
+            if (!v || !v.value_rect_id) continue;
+            const rect = root.getElementById(v.value_rect_id) as SVGElement | null;
+            const text = root.getElementById(`${v.value_rect_id}_text`) as SVGElement | null;
+            const divider = root.getElementById(`${v.value_rect_id}_divider`) as SVGElement | null;
+            const shown = !v.optional || (!!v.entityId && !!this.hass.states[v.entityId]);
+            if (rect) rect.style.display = shown ? "" : "none";
+            if (text) text.setAttribute("display", shown ? "block" : "none");
+            if (divider) divider.style.display = shown && k > 0 ? "" : "none";
+            if (!shown) continue;
+            const slot = slots[k++];
+            if (rect) { rect.setAttribute("y", String(slot.y)); rect.setAttribute("height", String(slot.h)); }
+            if (text) text.setAttribute("y", String(slot.y + slot.h / 2 + (svg_item.offset ?? 0)));
+            if (divider) { divider.setAttribute("y1", String(slot.y)); divider.setAttribute("y2", String(slot.y)); }
+        }
+        const container = root.getElementById(`${svg_item.group_id}_rect`) as SVGElement | null;
+        if (container) {
+            const top = parseFloat(container.getAttribute("y") ?? "0");
+            container.style.display = k > 0 ? "" : "none";
+            if (k > 0) container.setAttribute("height", String(Math.max(0, slots[k - 1].y + slots[k - 1].h - top)));
+        }
+    }
+
+    // Sets the semantic state of a value text. Layouts that style the states themselves (data-own-state-style)
+    // only get the state; other (custom) SVGs get inline colours.
+    private textState(el: HTMLElement, state: string, fallback: Record<string, string>): void {
+        el.setAttribute("data-state", state);
+        if (!this.layoutStyle.ownStates || state === "normal") {
+            for (const [name, value] of Object.entries(fallback)) {
+                el.setAttribute(name, value);
+            }
+        }
+    }
+
+    // Everything that depends on the look is described by the SVG itself:
+    //   data-run-map   {elementId: {entity, mode: "on" | "gt0"}}  -> the card sets data-state="on|off|unknown" on that element
+    //   data-temp-vars {--k-name: {entity: [ids], min, max}}      -> the card sets --k-name (0..1) on the <svg>
+    // How "on", "off" or a value looks (colours, paused animations) is defined by CSS inside the SVG.
+    private updateDynamicStyle(): void {
+        const svg = this.shadowRoot?.querySelector("ha-card svg") as SVGSVGElement | null;
+        if (!svg || !this.config || !this.hass) return;
+
+        const parse = (attr: string): Record<string, any> => {
+            try { return JSON.parse(svg.getAttribute(attr) ?? "{}"); } catch { return {}; }
+        };
+        const stateOf = (key: string): string | undefined => {
+            const entityId = this.config.entities?.[key];
+            return entityId ? this.hass.states[entityId]?.state : undefined;
+        };
+
+        for (const [id, rule] of Object.entries(parse("data-run-map"))) {
+            const element = this.shadowRoot!.getElementById(id);
+            if (!element) continue;
+            const state = stateOf(rule.entity);
+            let result = "unknown";
+            if (state !== undefined && state !== "unknown" && state !== "unavailable") {
+                result = (rule.mode === "gt0" ? parseFloat(state) > 0 : state === "on") ? "on" : "off";
+            }
+            element.setAttribute("data-state", result);
+        }
+
+        for (const [name, rule] of Object.entries(parse("data-temp-vars"))) {
+            let value = NaN;
+            for (const key of (Array.isArray(rule.entity) ? rule.entity : [rule.entity])) {
+                const candidate = parseFloat(stateOf(key) ?? "");
+                if (Number.isFinite(candidate)) { value = candidate; break; }
+            }
+            if (Number.isFinite(value) && rule.max !== rule.min) {
+                const k = Math.min(1, Math.max(0, (value - rule.min) / (rule.max - rule.min)));
+                svg.style.setProperty(name, k.toFixed(3));
+            } else {
+                svg.style.removeProperty(name); // the SVG falls back to its own default
+            }
+        }
+    }
+
+    // "animations: false" freezes everything; how is defined by the SVG (svg[data-animations="off"])
+    private updateAnimations(): void {
+        const svg = this.shadowRoot?.querySelector("ha-card svg");
+        if (!svg) return;
+        svg.setAttribute("data-animations", this.config?.animations === false ? "off" : "on");
     }
 
     private updateOpacity(): void {
@@ -475,21 +907,40 @@ export class HPSUDashboardCard extends LitElement {
             const bpvOpenArrows = this.getDomElement("bpv-open-arrows") as HTMLElement | null;
             const bpvClosedArrows = this.getDomElement("bpv-closed-arrows") as HTMLElement | null;
 
+            const mixerEntity = this.config.entities?.['mischer'] ?? null;
+            const bypassEntity = this.config.entities?.['bypass'] ?? null;
+            // valve flaps (layouts with T-piece valves): angle follows the percentage
+            const setFlap = (id: string, entity: string | null) => {
+                const flap = this.shadowRoot!.getElementById(id);
+                if (!flap) return;
+                const raw = entity && this.hass.states[entity] ? parseFloat(this.hass.states[entity].state) : 0;
+                const share = Math.min(1, Math.max(0, Number.isFinite(raw) ? raw / 100 : 0));
+                const [px, py] = (flap.getAttribute("data-pivot") ?? "0 0").split(" ");
+                const a0 = parseFloat(flap.getAttribute("data-a0") ?? "0");
+                const a1 = parseFloat(flap.getAttribute("data-a1") ?? "0");
+                flap.setAttribute("transform", `rotate(${a0 + (a1 - a0) * share} ${px} ${py})`);
+            };
+            setFlap("dhw-flap", mixerEntity);
+            setFlap("bpv-flap", bypassEntity);
+
             if (!dhwOpenArrows || !dhwClosedArrows || !bpvOpenArrows || !bpvClosedArrows) return;
 
-            const flow_rate_id = this.config.entities?.['durchfluss'] ?? null;
             const mixer_id = this.config.entities?.['mischer'] ?? null;
             const bypass_id = this.config.entities?.['bypass'] ?? null;
 
-            const flowRate: number = flow_rate_id && this.hass.states[flow_rate_id] ? parseFloat(this.hass.states[flow_rate_id].state) : 0;
             const mischerState = mixer_id && this.hass.states[mixer_id] ? parseFloat(this.hass.states[mixer_id].state) : 0;
             const bpvState = bypass_id && this.hass.states[bypass_id] ? parseFloat(this.hass.states[bypass_id].state) : 0;
+
+            const flow_rate_id = this.config.entities?.['durchfluss'] ?? null;
+
+            const flowRate: number = flow_rate_id && this.hass.states[flow_rate_id] ? parseFloat(this.hass.states[flow_rate_id].state) : 0;
 
             dhwOpenArrows.style.opacity = (flowRate > 0 ? (mischerState / 100.0) : 0).toString();
             dhwClosedArrows.style.opacity = (flowRate > 0 ? ((100.0 - mischerState) / 100.0) : 0).toString();
             bpvOpenArrows.style.opacity = (flowRate > 0 ? (bpvState / 100.0) : 0).toString();
             bpvClosedArrows.style.opacity = (flowRate > 0 ? ((100.0 - bpvState) / 100.0) : 0).toString();
 
+            // Flow arrows (custom layouts): only visible when water actually flows
             const arrowOpacity = (flowRate > 0 ? 1 : 0).toString();
             for (let index = 1; index <= 8; ++index) {
                 const arrow = this.getDomElement(`Flow-Arrow-${index}`) as HTMLElement | null;
@@ -511,17 +962,28 @@ export class HPSUDashboardCard extends LitElement {
     }
 
     private makeURL(filename: string): string {
-        const repoName = "daikin-rotex-hpsu-dashboard";
-        const scriptElement = document.querySelector(`script[src*="/hacsfiles/${repoName}/"]`) as HTMLScriptElement;
+        // Resolve next to this card's own script, independent of install location
+        // (/hacsfiles/, /local/, /local/community/, ...).
+        // Not import.meta.url: Parcel inlines it as "file:///src/card.ts".
+        const scriptName = "hpsu-dashboard-card.js";
+        const scriptEl = Array.from(document.querySelectorAll<HTMLScriptElement>("script[src]"))
+            .find((s) => new URL(s.src, document.baseURI).pathname.endsWith(`/${scriptName}`));
+        const scriptUrl =
+            scriptEl?.src ??
+            performance
+                .getEntriesByType("resource")
+                .map((e) => e.name)
+                .find((n) => new URL(n, document.baseURI).pathname.endsWith(`/${scriptName}`));
 
-        const scriptUrl = scriptElement && scriptElement.src ? scriptElement.src : "";
-        const hacsTag = new URLSearchParams(scriptUrl.split("?")[1]).get("hacstag");
-
-        if (hacsTag) {
-            return `/hacsfiles/${repoName}/${filename}?hacstag=${hacsTag}`;
-        } else {
-            return `/local/${repoName}/dist/${filename}?v=${Date.now()}`;
+        if (!scriptUrl) {
+            console.warn(`hpsu-dashboard-card: cannot locate ${scriptName}, using default path`);
+            return `/local/community/daikin-rotex-hpsu-dashboard/${filename}`;
         }
+
+        const url = new URL(filename, scriptUrl);
+        // Reuse the script's own query string (hacstag / v=...) as cache key.
+        url.search = new URL(scriptUrl).search;
+        return url.href;
     }
 
     private isPanelView(): boolean {
@@ -555,9 +1017,9 @@ export class HPSUDashboardCard extends LitElement {
         return !!value && !isNaN(Number(value)) && Number(value) > 0;
     }
 
-    private findEntityIdById(entities: SVGItem[], id: string): string | undefined {
-        const entity = entities.find(entity => entity.id === id);
-        return entity ? entity.entityId : undefined;
+    private findEntityIdById(entities, id): string | undefined {
+        const value = entities.flatMap(item => item.values).find(value => value.id === id);
+        return value?.entityId ?? undefined;
     }
 
     /**
